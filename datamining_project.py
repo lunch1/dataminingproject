@@ -52,7 +52,7 @@ def dfChkBasics(dframe, valCnt = False):
 
 #%% [markdown]
 import os
-os.chdir('../dataminingproject')  
+#os.chdir('../dataminingproject')  
 # sometime when I opened the workspace from another folder, the 
 # working directory getcwd() will be in the wrong place. 
 # You can change it with chdir()
