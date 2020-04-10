@@ -2,9 +2,6 @@
 import numpy as np
 import pandas as pd
 
-
-
-
 #%%
 # Standard quick checks
 def dfChkBasics(dframe, valCnt = False): 
@@ -58,7 +55,8 @@ import os
 # You can change it with chdir()
 dirpath = os.getcwd() # print("current directory is : " + dirpath)
 filepath = os.path.join( dirpath ,'cepr_org_2019.csv')
-df= pd.read_csv(filepath)  
+cols_list=['age','female','wbho','forborn','citizen','vet','married','ownchild','empl','unem','nilf','uncov','state','educ','centcity','suburb','rural','smsastat14','educ','ind_m03','agric','manuf','servs','hourslw','rw']
+df= pd.read_csv(filepath, usecols=cols_list)  
 
 dfChkBasics(df, True)
 print(df.dtypes)
