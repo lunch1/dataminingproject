@@ -116,7 +116,7 @@ print(df_new.shape)
 # %%
 # Step 3
 # merge the data (3 numuric) without outlier to original dataset by index of both the dataframes.
-cleaned_df = df.merge(df_new, left_index=True, right_index=True)
+cleaned_df = df.merge(df_new, left_index=True, right_index=True).dropna()
 
 # reset index for new dataset
 cleaned_df = cleaned_df.reset_index()
