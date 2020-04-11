@@ -129,4 +129,62 @@ cleaned_df = cleaned_df.drop(columns=['age_y', 'rw_y', 'hourslw_y','index'])
 dfChkBasics(cleaned_df, True)
 print(cleaned_df.dtypes)
 
+#%%
+#data exploration and graphing
+#table on quantitative variables
+quant_variables=cleaned_df[['age','ownchild','multjobn','hourslw','rw']]
+table=quant_variables.describe()
+table.columns=['Age','Number of Children','Number of Jobs','Hours Worked Last Week','Real Wage']
+print(table)
+
+#%%
+#age and real wage
+import seaborn as sns
+kde=sns.kdeplot(cleaned_df.age, cleaned_df.rw, cmap="Blues", shade=True)
+kde.set_xlabel('Age',fontsize=10)
+kde.set_ylabel('Real Wage',fontsize=10)
+kde.set_title('Age and Real Wage',fontsize=15)
+
+# %%
+#gender by education level
+countplot=sns.countplot(x='educ', hue='female', order=['HS','LTHS','Some college','College','Advanced'],data=cleaned_df,palette=['skyblue','lightsalmon'])
+leg = countplot.get_legend()
+leg.set_title("Gender")
+labs = leg.texts
+labs[0].set_text("Male")
+labs[1].set_text("Female")
+countplot.set_xlabel('Education Level',fontsize=10)
+countplot.set_ylabel('Count',fontsize=10)
+countplot.set_title('Education Level by Gender',fontsize=15)
+
+# %%
+#education level by race
+fig, axes = plt.subplots(nrows=2, ncols=2,figsize=(12, 6))
+plt.suptitle('Education Level by Race',fontsize=20)
+plt.subplots_adjust(hspace=.4)
+white = cleaned_df[cleaned_df['wbho']=='White']
+hispanic = cleaned_df[cleaned_df['wbho']=='Hispanic']
+black = cleaned_df[cleaned_df['wbho']=='Black']
+other = cleaned_df[cleaned_df['wbho']=='Other']
+
+ax = sns.countplot(x='educ',order=['HS','LTHS','Some college','College','Advanced'],data=white,ax = axes[0,0],palette='BuGn_r')
+ax.set_xlabel('')
+ax.set_title('White')
+ax = sns.countplot(x='educ',order=['HS','LTHS','Some college','College','Advanced'],data=hispanic,ax = axes[0,1],palette='BuGn_r')
+ax.set_xlabel('')
+ax.set_title('Hispanic')
+ax = sns.countplot(x='educ',order=['HS','LTHS','Some college','College','Advanced'],data=black,ax = axes[1,0],palette='BuGn_r')
+ax.set_xlabel('')
+ax.set_title('Black')
+ax = sns.countplot(x='educ',order=['HS','LTHS','Some college','College','Advanced'],data=other,ax = axes[1,1],palette='BuGn_r')
+ax.set_xlabel('')
+ax.set_title('Other')
+#%%
+#types of region
+cleaned_df.centcity.sum()
+cleaned_df.suburb.sum()
+cleaned_df.rural.sum()
+data = [['Central City', 2297], ['Suburban', 4385], ['Rural', 1893]]
+regions = pd.DataFrame(data, columns = ['Type of Region', 'Count']) 
+regions_ch=sns.barplot(x='Type of Region',y='Count',data=regions,palette='Greens')
 # %%
