@@ -268,3 +268,33 @@ vif["VIF"] = [ variance_inflation_factor(X.values, i) for i in range(X.shape[1])
 print(vif)
 # According to the results, VIF is very small in all independent variables, so it means there are not multicollinearity issues for this model
 
+
+
+# %%
+#logistic regression to predict someone's gender based on their responses
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegressionCV
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+#choosing variables
+logit_df=cleaned_df[['uncov','age','female','wbho','citizen','vet','multjobn','rw']]
+#making a 4:1 train/test split
+X_train, X_test, y_train, y_test = train_test_split(logit_df.drop('female',axis=1), logit_df['female'], test_size=0.20, random_state=101)
+logmodel = LogisticRegression()
+logmodel.fit(X_train,y_train)
+predictions = logmodel.predict(X_test)
+#results
+confusion_matrix = confusion_matrix(y_test, predictions)
+print(confusion_matrix)
+print(classification_report(y_test,predictions))
+logmodel.score(X_test, y_test)
+#%%
+#trying using cv in addition to linear regression
+cv_model=LogisticRegressionCV()
+cv_model.fit(X_train,y_train)
+cv_predictions = cv_model.predict(X_test)
+#results
+print(classification_report(y_test,cv_predictions))
+cv_model.score(X_test, y_test)
+# %%
