@@ -268,8 +268,6 @@ vif["VIF"] = [ variance_inflation_factor(X.values, i) for i in range(X.shape[1])
 print(vif)
 # According to the results, VIF is very small in all independent variables, so it means there are not multicollinearity issues for this model
 
-
-
 # %%
 #logistic regression to predict someone's gender based on their responses
 from sklearn.model_selection import train_test_split
@@ -297,4 +295,34 @@ cv_predictions = cv_model.predict(X_test)
 #results
 print(classification_report(y_test,cv_predictions))
 cv_model.score(X_test, y_test)
+
+
+# %%
+#logistic regression to predict wage based on their responses
+# Convert wage to be object by given 0 = low wage (lower than the mean = 23.48), 1 = high wage (higher than the mean = 23.48)
+def cleanDfwage(row):
+  thewage = row["rw"]
+  return ("1" if (thewage >= 23.48) else "0" if (thewage < 23.48) else np.nan)
+# end function cleanDfwage
+cleaned_df['rw_dummy'] = cleaned_df.apply(cleanDfwage, axis=1)
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegressionCV
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+
+#choosing variables
+logit_df=cleaned_df[['uncov','age','female','wbho','married','citizen','vet','multjobn','rw_dummy']]
+#making a 4:1 train/test split
+X_train, X_test, y_train, y_test = train_test_split(logit_df.drop('rw_dummy',axis=1), logit_df['rw_dummy'], test_size=0.20, random_state=101)
+logmodel = LogisticRegression()
+logmodel.fit(X_train,y_train)
+predictions = logmodel.predict(X_test)
+#results
+confusion_matrix = confusion_matrix(y_test, predictions)
+print(confusion_matrix)
+print(classification_report(y_test,predictions))
+logmodel.score(X_test, y_test)
+
 # %%
