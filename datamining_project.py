@@ -344,7 +344,7 @@ print(sklearn_wageModellogit.predict_proba(x_trainwage[:8]))
 print(sklearn_wageModellogit.predict_proba(x_testwage[:8]))
 
 #results (Logit)
-print('Logit model accuracy (with the test set):', sklearn_wageModellogit.score(x_testwage, y_testwage))
+print('Logit model accuracy (with the test set):', sklearn_wageModellogit.score(x_testwage, sklearn_wageModellogit_predictions))
 confusion_matrix = confusion_matrix(y_testwage, sklearn_wageModellogit_predictions)
 print(confusion_matrix)
 print(classification_report(y_testwage,sklearn_wageModellogit_predictions))
@@ -425,24 +425,24 @@ print()
 #%%
 # Fourth, let try SVC() for wage model
 from sklearn.svm import SVC, LinearSVC
-# SVC - gamma = auto
-svcwage_auto = SVC(gamma='auto', probability=True)
-svcwage_auto.fit(x_trainwage,y_trainwage)
+# SVC - gamma = scale
+svcwage_scale = SVC(gamma='scale', probability=True)
+svcwage_scale.fit(x_trainwage,y_trainwage)
 
 #Predictions
-svcwage_auto_pred = svcwage_auto.predict(x_testwage)
-print(svcwage_auto_pred)
-print(svcwage_auto.predict_proba(x_trainwage[:8]))
-print(svcwage_auto.predict_proba(x_testwage[:8]))
+svcwage_scale_pred = svcwage_scale.predict(x_testwage)
+print(svcwage_scale_pred)
+print(svcwage_scale.predict_proba(x_trainwage[:8]))
+print(svcwage_scale.predict_proba(x_testwage[:8]))
 
 # Evaluate test-set accuracy
-print("SVC (adjust gamma: auto)")
+print("SVC (adjust gamma: scale)")
 print()
-print(f'svc train score:  {svcwage_auto.score(x_trainwage,y_trainwage)}')
-print(f'svc test score:  {svcwage_auto.score(x_testwage,y_testwage)}')
-print(accuracy_score(y_testwage, svcwage_auto_pred))
-print(confusion_matrix(y_testwage, svcwage_auto_pred))
-print(classification_report(y_testwage, svcwage_auto_pred))
+print(f'svc train score:  {svcwage_scale.score(x_trainwage,y_trainwage)}')
+print(f'svc test score:  {svcwage_scale.score(x_testwage,y_testwage)}')
+print(accuracy_score(y_testwage, svcwage_scale_pred))
+print(confusion_matrix(y_testwage, svcwage_scale_pred))
+print(classification_report(y_testwage, svcwage_scale_pred))
 print()
 
 #%%
@@ -454,8 +454,8 @@ svcwage_kernel_linear = svm.SVC(kernel='linear', probability=True)
 svcwage_kernel_linear.fit(x_trainwage,y_trainwage)
 
 #Predictions
-y_pred = svcwage_kernel_linear.predict(x_testwage)
-print(y_pred)
+y_pred_kernel_linear = svcwage_kernel_linear.predict(x_testwage)
+print(y_pred_kernel_linear)
 print(svcwage_kernel_linear.predict_proba(x_trainwage[:8]))
 print(svcwage_kernel_linear.predict_proba(x_testwage[:8]))
 
@@ -464,11 +464,11 @@ print("SVC (kernel='linear')")
 print()
 print(f'svc train score:  {svcwage_kernel_linear.score(x_trainwage,y_trainwage)}')
 print(f'svc test score:  {svcwage_kernel_linear.score(x_testwage,y_testwage)}')
-print(accuracy_score(y_testwage, y_pred))
+print(accuracy_score(y_testwage, y_pred_kernel_linear))
 
 from sklearn.metrics import confusion_matrix
-print(confusion_matrix(y_testwage, y_pred))
-print(classification_report(y_testwage, y_pred))
+print(confusion_matrix(y_testwage, y_pred_kernel_linear))
+print(classification_report(y_testwage, y_pred_kernel_linear))
 print()
 
 #%%
@@ -479,7 +479,7 @@ svcwage_linearsvc.fit(x_trainwage,y_trainwage)
 y_pred = svcwage_linearsvc.predict(x_testwage)
 
 #Predictions
-y_pred = svcwage_kernel_linear.predict(x_testwage)
+y_pred_linearsvc = svcwage_kernel_linear.predict(x_testwage)
 print(y_pred)
 print(svcwage_linearsvc._predict_proba_lr(x_trainwage[:8]))
 print(svcwage_linearsvc._predict_proba_lr(x_testwage[:8]))
@@ -489,11 +489,11 @@ print("SVC LinearSVC()")
 print()
 print(f'svc train score:  {svcwage_linearsvc.score(x_trainwage,y_trainwage)}')
 print(f'svc test score:  {svcwage_linearsvc.score(x_testwage,y_testwage)}')
-print(accuracy_score(y_testwage, y_pred))
+print(accuracy_score(y_testwage, y_pred_linearsvc))
 
 from sklearn.metrics import confusion_matrix
-print(confusion_matrix(y_testwage, y_pred))
-print(classification_report(y_testwage, y_pred))
+print(confusion_matrix(y_testwage, y_pred_linearsvc))
+print(classification_report(y_testwage, y_pred_linearsvc))
 print()
 
 
@@ -511,7 +511,7 @@ from sklearn.model_selection import cross_val_score
 %timeit -r 1 print(f'\n tree CV accuracy score: { cross_val_score(dtreewage_entropy_5, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
 
 # SVC()
-%timeit -r 1 print(f'\n SVC CV accuracy score: { cross_val_score(svcwage_auto, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
+%timeit -r 1 print(f'\n SVC CV accuracy score: { cross_val_score(svcwage_scale, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
 
 # SVC(kernel="linear")
 %timeit -r 1 print(f'\n SVC_kernel_linear CV accuracy score: { cross_val_score(svcwage_kernel_linear, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
@@ -519,4 +519,70 @@ from sklearn.model_selection import cross_val_score
 # LinearSVC()
 %timeit -r 1 print(f'\n LinearSVC CV accuracy score: { cross_val_score(svcwage_linearsvc, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
 
+# %%
+# Horizontal barplot to compare each score for wage model
+# libraries
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import f1_score
+
+# accuracy_score
+# Make score dataset
+height = [accuracy_score(y_testwage, sklearn_wageModellogit_predictions), accuracy_score(y_testwage, knn_wagepredictions), accuracy_score(y_testwage, dtreewage_entropy_5_pred), accuracy_score(y_testwage, svcwage_scale_pred), accuracy_score(y_testwage, y_pred_kernel_linear), accuracy_score(y_testwage, y_pred_linearsvc)]
+bars = ('Logit', 'KNN', 'Tree', 'SVC', 'SVCkernel', 'LinearSVC')
+y_pos = np.arange(len(bars))
+# Create horizontal bars
+plt.barh(y_pos, height)
+# Create names on the y-axis
+plt.yticks(y_pos, bars)
+plt.title('Accuracy score for six classifiers (Wage model)' )
+plt.savefig('Accuracy_score_wagemodel.png')
+# Show graphic
+plt.show()
+
+# precision_score
+# Make score dataset
+height = [precision_score(y_testwage, sklearn_wageModellogit_predictions, average='weighted'), precision_score(y_testwage, knn_wagepredictions, average='weighted'), precision_score(y_testwage, dtreewage_entropy_5_pred, average='weighted'), precision_score(y_testwage, svcwage_scale_pred, average='weighted'), precision_score(y_testwage, y_pred_kernel_linear, average='weighted'), precision_score(y_testwage, y_pred_linearsvc, average='weighted')]
+bars = ('Logit', 'KNN', 'Tree', 'SVC', 'SVCkernel', 'LinearSVC')
+y_pos = np.arange(len(bars))
+# Create horizontal bars
+plt.barh(y_pos, height)
+# Create names on the y-axis
+plt.yticks(y_pos, bars)
+plt.title('Precision score for six classifiers (Wage model)')
+plt.savefig('Precision_score_wagemodel.png')
+# Show graphic
+plt.show()
+ 
+# recall_score
+# Make score dataset
+height = [recall_score(y_testwage, sklearn_wageModellogit_predictions, average='weighted'), recall_score(y_testwage, knn_wagepredictions, average='weighted'), recall_score(y_testwage, dtreewage_entropy_5_pred, average='weighted'), recall_score(y_testwage, svcwage_scale_pred, average='weighted'), recall_score(y_testwage, y_pred_kernel_linear, average='weighted'), recall_score(y_testwage, y_pred_linearsvc, average='weighted')]
+bars = ('Logit', 'KNN', 'Tree', 'SVC', 'SVCkernel', 'LinearSVC')
+y_pos = np.arange(len(bars))
+# Create horizontal bars
+plt.barh(y_pos, height)
+# Create names on the y-axis
+plt.yticks(y_pos, bars)
+plt.title('Recall score for six classifiers (Wage model)')
+plt.savefig('Recall_score_wagemodel.png')
+# Show graphic
+plt.show()
+
+
+# f1_score
+# Make score dataset
+height = [f1_score(y_testwage, sklearn_wageModellogit_predictions, average='weighted'), f1_score(y_testwage, knn_wagepredictions, average='weighted'), f1_score(y_testwage, dtreewage_entropy_5_pred, average='weighted'), f1_score(y_testwage, svcwage_scale_pred, average='weighted'), f1_score(y_testwage, y_pred_kernel_linear, average='weighted'), f1_score(y_testwage, y_pred_linearsvc, average='weighted')]
+bars = ('Logit', 'KNN', 'Tree', 'SVC', 'SVCkernel', 'LinearSVC')
+y_pos = np.arange(len(bars))
+# Create horizontal bars
+plt.barh(y_pos, height)
+# Create names on the y-axis
+plt.yticks(y_pos, bars)
+plt.title('F1_score for six classifiers (Wage model)')
+plt.savefig('F1_score_wagemodel.png')
+# Show graphic
+plt.show()
 # %%
