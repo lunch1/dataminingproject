@@ -532,7 +532,7 @@ emcounts/emcounts.sum()
 
 #%%
 #educ level and empl
-sns.barplot(x='educ', y='empl', order=['HS','LTHS','Some college','College','Advanced'], data=df)
+sns.barplot(x='educ', y='empl', order=['LTHS','HS','Some college','College','Advanced'], data=df)
 
 #%%
 #number of children and empl
@@ -542,7 +542,7 @@ axes = sns.factorplot('ownchild','empl',
 #%%
 #employed, educ level, race and gender
 FacetGrid = sns.FacetGrid(df, row='wbho', size=4.5, aspect=1.6)
-FacetGrid.map(sns.pointplot, 'educ', 'empl', 'female', hue_order=None, color ="r",order=['HS','LTHS','Some college','College','Advanced'],palette=['blue','pink'])
+FacetGrid.map(sns.pointplot, 'educ', 'empl', 'female', hue_order=None, color ="r",order=['LTHS','HS','Some college','College','Advanced'],palette=['blue','pink'])
 FacetGrid.add_legend()
 FacetGrid.set_titles("Female")
 
@@ -555,25 +555,11 @@ print(modelemplLogitFit.summary())
 
 
 # %%
-# HS = 0, Some college = 1, college = 2, advanced = 3, LTHS = 4
-def cleanDfeduc(row):
-  theedu = row["educ"]
-  return (0 if (theedu=="HS") else 1 if (theedu=="Some college") else 2 if (theedu=="College") else 3 if (theedu=="Advanced") else 4 if (theedu=="LTHS") else np.nan)
-# end function cleanDfeduc
-cleaned_df['educ'] = df.apply(cleanDfeduc, axis=1)
-
-# wbho
-# White = 0, Hispanic = 1, black = 2, other = 3
-def cleanDfwbho(row):
-  thewbho = row["wbho"]
-  return (0 if (thewbho=="White") else 1 if (thewbho=="Hispanic") else 2 if (thewbho=="Black") else 3 if (thewbho=="Other") else np.nan)
-# end function cleanDfeduc
-cleaned_df['wbho'] = df.apply(cleanDfwbho, axis=1)
 # Prepare our X data (features, predictors, regressors) and y data (target, dependent variable)
 xempl = cleaned_df[['age','female','citizen','married','educ','wbho','ownchild','vet']]
 yempl = cleaned_df['empl']
-print(yempl.head())
-
+print(type(xempl))
+print(type(yempl))
 # %%
 # Decision Tree, y-target is categorical, similar to KNN, (multinomial) logistic Regression, 
 # Import DecisionTreeClassifier
@@ -586,7 +572,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
 
 # Split dataset into 80% train, 20% test
-X_trainempl, X_testempl, y_trainempl, y_testempl= train_test_split(xempl, yempl, test_size=0.2,random_state=1)
+X_trainempl, X_testempl, y_trainempl, y_testempl= train_test_split(X_trainempl,y_trainempl, stratify=yempl,test_size=0.20, random_state=101)
 
 # %%
 from sklearn.linear_model import LogisticRegression
