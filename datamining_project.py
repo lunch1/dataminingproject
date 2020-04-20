@@ -202,7 +202,7 @@ regions_ch=sns.barplot(x='Type of Region',y='Count',data=regions,palette='Greens
 # married - Married (0 = Never married, 1 = married)
 # marstat - Marital status (Married, Never Married, Divorced, Widowed, Separated)
 # ownchild - Number of children (Numeric)
-# empl - Employed (0 = employed, 1 = unemployed)
+# empl - Employed (1 = employed, 0 = unemployed or not in LF)
 # unem - Unemployed (0 = employed, 1 = unemployed)
 # nilf - Not in labor force (0 = Not in labor force, 1 = in labor force)
 # uncov - Union coverage (0 - non-Union coverage, 1 = Union coverage)
@@ -552,3 +552,145 @@ print(accuracy_score(y_testwage, y_pred))
 print(confusion_matrix(y_testwage, y_pred))
 print(classification_report(y_testwage, y_pred))
 print()
+
+#%%
+#Calculate employment rate
+emcounts = pd.crosstab(index=df['empl'], columns="count")
+emcounts/emcounts.sum()
+
+#%%
+#educ level and empl
+sns.barplot(x='educ', y='empl', data=df)
+
+#%%
+#number of children and empl
+axes = sns.factorplot('ownchild','empl', 
+                      data=df, aspect = 2.5, )
+
+#%%
+#employed, educ level, race and gender
+FacetGrid = sns.FacetGrid(df, row='wbho', size=4.5, aspect=1.6)
+FacetGrid.map(sns.pointplot, 'educ', 'empl', 'female', hue_order=None, color ="r",order=['HS','LTHS','Some college','College','Advanced'],palette=['blue','pink'])
+FacetGrid.add_legend()
+FacetGrid.set_titles("Female")
+
+# %%
+import statsmodels.api as sm  # Importing statsmodels
+from statsmodels.formula.api import glm
+
+modelemplLogitFit = glm(formula= 'empl ~ age + C(female) + C(citizen) + C(married) + C(educ) + C(wbho) + ownchild + C(vet)', data=df, family=sm.families.Binomial()).fit()
+print(modelemplLogitFit.summary())
+
+
+# %%
+# HS = 0, Some college = 1, college = 2, advanced = 3, LTHS = 4
+def cleanDfeduc(row):
+  theedu = row["educ"]
+  return (0 if (theedu=="HS") else 1 if (theedu=="Some college") else 2 if (theedu=="College") else 3 if (theedu=="Advanced") else 4 if (theedu=="LTHS") else np.nan)
+# end function cleanDfeduc
+cleaned_df['educ'] = df.apply(cleanDfeduc, axis=1)
+
+# wbho
+# White = 0, Hispanic = 1, black = 2, other = 3
+def cleanDfwbho(row):
+  thewbho = row["wbho"]
+  return (0 if (thewbho=="White") else 1 if (thewbho=="Hispanic") else 2 if (thewbho=="Black") else 3 if (thewbho=="Other") else np.nan)
+# end function cleanDfeduc
+cleaned_df['wbho'] = df.apply(cleanDfwbho, axis=1)
+# Prepare our X data (features, predictors, regressors) and y data (target, dependent variable)
+xempl = cleaned_df[['age','female','citizen','married','educ','wbho','ownchild','vet']]
+yempl = cleaned_df['empl']
+print(yempl.head())
+
+# %%
+# Decision Tree, y-target is categorical, similar to KNN, (multinomial) logistic Regression, 
+# Import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeClassifier
+# Import train_test_split
+from sklearn.model_selection import train_test_split
+# Import accuracy_score
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import confusion_matrix 
+from sklearn.metrics import classification_report
+
+# Split dataset into 80% train, 20% test
+X_trainempl, X_testempl, y_trainempl, y_testempl= train_test_split(xempl, yempl, test_size=0.2,random_state=1)
+
+# %%
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC, LinearSVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import confusion_matrix 
+from sklearn.metrics import classification_report
+#%%
+# Instantiate dtree
+dtree_empl = DecisionTreeClassifier(max_depth=5, random_state=1)
+# Fit dt to the training set
+dtree_empl.fit(X_trainempl,y_trainempl)
+# Predict test set labels
+y_predempl = dtree_empl.predict(X_testempl)
+# Evaluate test-set accuracy
+print(accuracy_score(y_testempl, y_predempl))
+print(confusion_matrix(y_testempl, y_predempl))
+print(classification_report(y_testempl, y_predempl))
+
+# %%
+# SVC
+svc = SVC()
+svc.fit(X_trainempl,y_trainempl)
+print(f'svc train score:  {svc.score(X_trainempl,y_trainempl)}')
+print(f'svc test score:  {svc.score(X_testempl,y_testempl)}')
+print(confusion_matrix(y_testempl, svc.predict(X_testempl)))
+print(classification_report(y_testempl, svc.predict(X_testempl)))
+
+#%%
+# SVC(kernel="linear")
+svc_linearkernal = SVC(kernel="linear")
+svc_linearkernal.fit(X_train,y_train)
+print(f'svc_linearkernal train score:  {svc_linearkernal.score(X_train,y_train)}')
+print(f'svc_linearkernal test score:  {svc_linearkernal.score(X_test,y_test)}')
+print(confusion_matrix(y_test, svc_linearkernal.predict(X_test)))
+print(classification_report(y_test, svc_linearkernal.predict(X_test)))
+
+#%%
+# linearSVC 
+linearSVC = LinearSVC()
+linearSVC.fit(X_train,y_train)
+print(f'linearSVC train score:  {linearSVC.score(X_train,y_train)}')
+print(f'linearSVC test score:  {linearSVC.score(X_test,y_test)}')
+print(confusion_matrix(y_test, linearSVC.predict(X_test)))
+print(classification_report(y_test, linearSVC.predict(X_test)))
+
+#%% 
+# logistic regression 
+lr = LogisticRegression()
+lr.fit(X_train,y_train)
+print(f'lr train score:  {lr.score(X_train,y_train)}')
+print(f'lr test score:  {lr.score(X_test,y_test)}')
+print(confusion_matrix(y_test, lr.predict(X_test)))
+print(classification_report(y_test, lr.predict(X_test)))
+
+#%%
+# KNN
+knn = KNeighborsClassifier(n_neighbors=3)
+knn.fit(X_train,y_train)
+print(f'knn train score:  {knn.score(X_train,y_train)}')
+print(f'knn test score:  {knn.score(X_test,y_test)}')
+print(confusion_matrix(y_test, lr.predict(X_test)))
+print(classification_report(y_test, knn.predict(X_test)))
+
+#%%
+# Decision tree classifier
+# Instantiate dtree
+dtree = DecisionTreeClassifier(max_depth=5, random_state=1)
+# Fit dt to the training set
+dtree.fit(X_train,y_train)
+# Predict test set labels
+y_pred = dtree.predict(X_test)
+# Evaluate test-set accuracy
+print(f'Decision tree train score:  {dtree.score(X_train,y_train)}')
+print(f'Decision tree score:  {dtree.score(X_test,y_test)}')
+print(confusion_matrix(y_test, dtree.predict(X_test)))
+print(classification_report(y_test, dtree.predict(X_test)))
