@@ -532,7 +532,7 @@ emcounts/emcounts.sum()
 
 #%%
 #educ level and empl
-sns.barplot(x='educ', y='empl', data=df)
+sns.barplot(x='educ', y='empl', order=['HS','LTHS','Some college','College','Advanced'], data=df)
 
 #%%
 #number of children and empl
