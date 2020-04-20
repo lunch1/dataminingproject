@@ -55,7 +55,7 @@ import pandas as pd
 # working directory getcwd() will be in the wrong place. 
 # You can change it with chdir()
 dirpath = os.getcwd() # print("current directory is : " + dirpath)
-filepath = os.path.join( dirpath ,'cepr_org_2019.csv')
+filepath = os.path.join('/Users/IgnatiosDraklellis/Documents/GitHub/dataminingproject/cepr_org_2019.csv')
 cols_list=['age','female','wbho','forborn','citizen','vet','married', 'marstat','ownchild','empl','unem','nilf','uncov','state','educ','centcity','suburb','rural','smsastat14','ind_m03','agric','manuf', 'hourslw','rw', 'multjobn']
 df= pd.read_csv(filepath, usecols=cols_list)
 dfChkBasics(df, True)
