@@ -197,7 +197,6 @@ from sklearn.linear_model import LogisticRegressionCV
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 
-<<<<<<< HEAD
 # age - age (Numeric)
 # female - sex (0 = male, 1 = female)
 # wbho - Race (white, Hispanic, Black, Other)
@@ -223,7 +222,6 @@ from sklearn.metrics import confusion_matrix
 # hourslw - Hours last week, all jobs (Numeric)
 # rw - Real hourly wage, 2019$ (Numeric)
 # multjobn - Number of jobs (Numeric)
-=======
 # wbho
 # White = 0, Hispanic = 1, black = 2, other = 3
 def cleanDfwbho(row):
@@ -256,7 +254,6 @@ cv_model.score(X_test, y_test)
 # %%
 # Build the model
 # Mutiple linear regression
->>>>>>> 2ea95ddcc0443953fe22924ca8078320cf05a741
 
 from statsmodels.formula.api import ols
 modelwage1Fit = ols(formula='rw ~ age + C(female) + hourslw + C(forborn) + C(married) + C(educ) + C(wbho) + C(rural)', data=cleaned_df).fit()
@@ -524,7 +521,6 @@ print(confusion_matrix(y_testwage, y_pred_linearsvc))
 print(classification_report(y_testwage, y_pred_linearsvc))
 print()
 
-<<<<<<< HEAD
 #%%
 #Calculate employment rate
 emcounts = pd.crosstab(index=df['empl'], columns="count")
@@ -666,7 +662,6 @@ print(f'Decision tree train score:  {dtree.score(X_train,y_train)}')
 print(f'Decision tree score:  {dtree.score(X_test,y_test)}')
 print(confusion_matrix(y_test, dtree.predict(X_test)))
 print(classification_report(y_test, dtree.predict(X_test)))
-=======
 
 # %%
 # Time take 
@@ -757,4 +752,6 @@ plt.savefig('F1_score_wagemodel.png')
 # Show graphic
 plt.show()
 # %%
->>>>>>> 2ea95ddcc0443953fe22924ca8078320cf05a741
+
+
+
