@@ -418,7 +418,7 @@ print()
 # Fourth, let try SVC() for wage model
 from sklearn.svm import SVC, LinearSVC
 # SVC - gamma = auto
-svcwage_auto = SVC(gamma='auto')
+svcwage_auto = SVC(gamma='auto', probability=True)
 svcwage_auto.fit(x_trainwage,y_trainwage)
 
 #Predictions
@@ -488,5 +488,27 @@ print(confusion_matrix(y_testwage, y_pred))
 print(classification_report(y_testwage, y_pred))
 print()
 
+
+# %%
+# Time take 
+from sklearn.model_selection import cross_val_score
+
+# logit
+%timeit -r 1 print(f'\n logist CV accuracy score: { cross_val_score(sklearn_wageModellogit, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' ) 
+
+# KNN
+%timeit -r 1 print(f'\n KNN CV accuracy score: { cross_val_score(knn_split_5, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' ) 
+
+# DecisionTree
+%timeit -r 1 print(f'\n tree CV accuracy score: { cross_val_score(dtreewage_entropy_5, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
+
+# SVC()
+%timeit -r 1 print(f'\n SVC CV accuracy score: { cross_val_score(svcwage_auto, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
+
+# SVC(kernel="linear")
+%timeit -r 1 print(f'\n SVC_kernel_linear CV accuracy score: { cross_val_score(svcwage_kernel_linear, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
+
+# LinearSVC()
+%timeit -r 1 print(f'\n LinearSVC CV accuracy score: { cross_val_score(svcwage_linearsvc, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
 
 # %%
