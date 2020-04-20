@@ -291,6 +291,14 @@ def cleanDfwage(row):
 # end function cleanDfwage
 cleaned_df['rw_dummy'] = cleaned_df.apply(cleanDfwage, axis=1)
 
+#%%
+#wage type chart
+data = [['High wage', 4170], ['Low wage', 6248]]
+wagechart = pd.DataFrame(data, columns = ['Level', 'Count']) 
+wagechart_ch=sns.barplot(x='Level',y='Count',data=wagechart,palette='Greens')
+
+
+#%%
 xtarget = cleaned_df[['age', 'female', 'citizen', 'married', 'educ', 'wbho', 'hourslw', 'rural']]
 ytarget = cleaned_df['rw_dummy'] #wage 
 
