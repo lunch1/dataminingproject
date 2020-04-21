@@ -617,3 +617,20 @@ print(confusion_matrix(y_testempl, dtree.predict(X_testempl)))
 print(classification_report(y_testempl, dtree.predict(X_testempl)))
 
 # %%
+from sklearn.model_selection import cross_val_score
+%timeit -r 1 print (f'\n SVC CV accuracy score: { cross_val_score(svc, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' ) 
+# 2min 12s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
+%timeit -r 1 print (f'\n SVC_linearkernal CV accuracy score: { cross_val_score(svc_linearkernal, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' ) 
+# 13min 28s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
+%timeit -r 1 print (f'\n linear SVC CV accuracy score: { cross_val_score(linearSVC, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' ) 
+# 13.9 s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
+%timeit -r 1 print (f'\n logistic CV accuracy score: { cross_val_score(lr, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' ) 
+# 1.42 s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
+%timeit -r 1 print (f'\n KNN CV accuracy score: { cross_val_score(knn, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' ) 
+# 1.47 s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
+%timeit -r 1 print (f'\n tree CV accuracy score: { cross_val_score(dtree, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' ) 
+# 187 ms ± 0 ns per loop (mean ± std. dev. of 1 run, 10 loops each)
+
+# Tree CV is the fastest, SVC CV is the slowest
+
+# %%
