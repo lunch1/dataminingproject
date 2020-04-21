@@ -197,7 +197,6 @@ from sklearn.linear_model import LogisticRegressionCV
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 
-<<<<<<< HEAD
 # age - age (Numeric)
 # female - sex (0 = male, 1 = female)
 # wbho - Race (white, Hispanic, Black, Other)
@@ -223,40 +222,6 @@ from sklearn.metrics import confusion_matrix
 # hourslw - Hours last week, all jobs (Numeric)
 # rw - Real hourly wage, 2019$ (Numeric)
 # multjobn - Number of jobs (Numeric)
-=======
-# wbho
-# White = 0, Hispanic = 1, black = 2, other = 3
-def cleanDfwbho(row):
-  thewbho = row["wbho"]
-  return (0 if (thewbho=="White") else 1 if (thewbho=="Hispanic") else 2 if (thewbho=="Black") else 3 if (thewbho=="Other") else np.nan)
-# end function cleanDfwbho
-cleaned_df['wbho'] = df.apply(cleanDfwbho, axis=1)
-
-#choosing variables
-logit_df=cleaned_df[['uncov','age','female','wbho','citizen','vet','multjobn','rw']]
-#making a 4:1 train/test split
-X_train, X_test, y_train, y_test = train_test_split(logit_df.drop('female',axis=1), logit_df['female'], test_size=0.20, random_state=101)
-logmodel = LogisticRegression()
-logmodel.fit(X_train,y_train)
-predictions = logmodel.predict(X_test)
-#results
-confusion_matrix = confusion_matrix(y_test, predictions)
-print(confusion_matrix)
-print(classification_report(y_test,predictions))
-logmodel.score(X_test, y_test)
-#%%
-#trying using cv in addition to linear regression
-cv_model=LogisticRegressionCV()
-cv_model.fit(X_train,y_train)
-cv_predictions = cv_model.predict(X_test)
-#results
-print(classification_report(y_test,cv_predictions))
-cv_model.score(X_test, y_test)
-
-# %%
-# Build the model
-# Mutiple linear regression
->>>>>>> 2ea95ddcc0443953fe22924ca8078320cf05a741
 
 from statsmodels.formula.api import ols
 modelwage1Fit = ols(formula='rw ~ age + C(female) + hourslw + C(forborn) + C(married) + C(educ) + C(wbho) + C(rural)', data=cleaned_df).fit()
@@ -524,7 +489,6 @@ print(confusion_matrix(y_testwage, y_pred_linearsvc))
 print(classification_report(y_testwage, y_pred_linearsvc))
 print()
 
-<<<<<<< HEAD
 #%%
 #Calculate employment rate
 emcounts = pd.crosstab(index=df['empl'], columns="count")
@@ -651,95 +615,3 @@ print(f'Decision tree train score:  {dtree.score(X_train,y_train)}')
 print(f'Decision tree score:  {dtree.score(X_test,y_test)}')
 print(confusion_matrix(y_test, dtree.predict(X_test)))
 print(classification_report(y_test, dtree.predict(X_test)))
-=======
-
-# %%
-# Time take 
-from sklearn.model_selection import cross_val_score
-
-# logit
-%timeit -r 1 print(f'\n logist CV accuracy score: { cross_val_score(sklearn_wageModellogit, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' ) 
-
-# KNN
-%timeit -r 1 print(f'\n KNN CV accuracy score: { cross_val_score(knn_split_5, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' ) 
-
-# DecisionTree
-%timeit -r 1 print(f'\n tree CV accuracy score: { cross_val_score(dtreewage_entropy_5, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
-
-# SVC()
-%timeit -r 1 print(f'\n SVC CV accuracy score: { cross_val_score(svcwage_auto, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
-
-# SVC(kernel="linear")
-%timeit -r 1 print(f'\n SVC_kernel_linear CV accuracy score: { cross_val_score(svcwage_kernel_linear, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
-
-# LinearSVC()
-%timeit -r 1 print(f'\n LinearSVC CV accuracy score: { cross_val_score(svcwage_linearsvc, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
-
-# %%
-# Horizontal barplot to compare each score for wage model
-# libraries
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import precision_score
-from sklearn.metrics import recall_score
-from sklearn.metrics import f1_score
-
-# accuracy_score
-# Make score dataset
-height = [accuracy_score(y_testwage, sklearn_wageModellogit_predictions), accuracy_score(y_testwage, knn_wagepredictions), accuracy_score(y_testwage, dtreewage_entropy_5_pred), accuracy_score(y_testwage, svcwage_auto_pred), accuracy_score(y_testwage, y_pred_kernel_linear), accuracy_score(y_testwage, y_pred_linearsvc)]
-bars = ('Logit', 'KNN', 'Tree', 'SVC', 'SVCkernel', 'LinearSVC')
-y_pos = np.arange(len(bars))
-# Create horizontal bars
-plt.barh(y_pos, height)
-# Create names on the y-axis
-plt.yticks(y_pos, bars)
-plt.title('Accuracy score for six classifiers (Wage model)' )
-plt.savefig('Accuracy_score_wagemodel.png')
-# Show graphic
-plt.show()
-
-# precision_score
-# Make score dataset
-height = [precision_score(y_testwage, sklearn_wageModellogit_predictions, average='weighted'), precision_score(y_testwage, knn_wagepredictions, average='weighted'), precision_score(y_testwage, dtreewage_entropy_5_pred, average='weighted'), precision_score(y_testwage, svcwage_auto_pred, average='weighted'), precision_score(y_testwage, y_pred_kernel_linear, average='weighted'), precision_score(y_testwage, y_pred_linearsvc, average='weighted')]
-bars = ('Logit', 'KNN', 'Tree', 'SVC', 'SVCkernel', 'LinearSVC')
-y_pos = np.arange(len(bars))
-# Create horizontal bars
-plt.barh(y_pos, height)
-# Create names on the y-axis
-plt.yticks(y_pos, bars)
-plt.title('Precision score for six classifiers (Wage model)')
-plt.savefig('Precision_score_wagemodel.png')
-# Show graphic
-plt.show()
- 
-# recall_score
-# Make score dataset
-height = [recall_score(y_testwage, sklearn_wageModellogit_predictions, average='weighted'), recall_score(y_testwage, knn_wagepredictions, average='weighted'), recall_score(y_testwage, dtreewage_entropy_5_pred, average='weighted'), recall_score(y_testwage, svcwage_auto_pred, average='weighted'), recall_score(y_testwage, y_pred_kernel_linear, average='weighted'), recall_score(y_testwage, y_pred_linearsvc, average='weighted')]
-bars = ('Logit', 'KNN', 'Tree', 'SVC', 'SVCkernel', 'LinearSVC')
-y_pos = np.arange(len(bars))
-# Create horizontal bars
-plt.barh(y_pos, height)
-# Create names on the y-axis
-plt.yticks(y_pos, bars)
-plt.title('Recall score for six classifiers (Wage model)')
-plt.savefig('Recall_score_wagemodel.png')
-# Show graphic
-plt.show()
-
-
-# f1_score
-# Make score dataset
-height = [f1_score(y_testwage, sklearn_wageModellogit_predictions, average='weighted'), f1_score(y_testwage, knn_wagepredictions, average='weighted'), f1_score(y_testwage, dtreewage_entropy_5_pred, average='weighted'), f1_score(y_testwage, svcwage_auto_pred, average='weighted'), f1_score(y_testwage, y_pred_kernel_linear, average='weighted'), f1_score(y_testwage, y_pred_linearsvc, average='weighted')]
-bars = ('Logit', 'KNN', 'Tree', 'SVC', 'SVCkernel', 'LinearSVC')
-y_pos = np.arange(len(bars))
-# Create horizontal bars
-plt.barh(y_pos, height)
-# Create names on the y-axis
-plt.yticks(y_pos, bars)
-plt.title('F1_score for six classifiers (Wage model)')
-plt.savefig('F1_score_wagemodel.png')
-# Show graphic
-plt.show()
-# %%
->>>>>>> 2ea95ddcc0443953fe22924ca8078320cf05a741
