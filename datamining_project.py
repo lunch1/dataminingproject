@@ -570,9 +570,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix 
 from sklearn.metrics import classification_report
-
 # Split dataset into 80% train, 20% test
-X_trainempl, X_testempl, y_trainempl, y_testempl= train_test_split(X_trainempl,y_trainempl, stratify=yempl,test_size=0.20, random_state=101)
+X_trainempl, X_testempl, y_trainempl, y_testempl= train_test_split(xempl,yempl, stratify=yempl,test_size=0.20, random_state=1)
 
 # %%
 from sklearn.linear_model import LogisticRegression
