@@ -64,7 +64,7 @@ print(df.dtypes)
 # Data dict
 # age - age (Numeric)
 # female - sex (0 = male, 1 = female)
-# wbho - Race (white, Hispanic, Black, Other)
+# wbho - White = 0, Hispanic = 1, black = 2, other = 3
 # forborn - Foreign born (0 = foriegn born, 1 = US born)
 # citizen - US citizen (0 = No-US citizen, 1 = US citizen)
 # vet - Veteran (0 = No-vateren, 1 = veteran)
@@ -372,7 +372,7 @@ print(sklearn_wageModellogit.predict_proba(x_testwage[:8]))
 print('Logit model accuracy (with the test set):', sklearn_wageModellogit.score(x_testwage, sklearn_wageModellogit_predictions))
 confusion_matrix = confusion_matrix(y_testwage, sklearn_wageModellogit_predictions)
 print(confusion_matrix)
-print(classification_report(y_testwage,sklearn_wageModellogit_predictions))
+print(classification_report(y_testwage,sklearn_wageModellogit_predi=ctions))
 
 #%%
 # Second, move to KNN
