@@ -528,6 +528,7 @@ emcounts/emcounts.sum()
 
 #%%
 #educ level and empl
+import seaborn as sns
 sns.barplot(x='educ', y='empl', order=['LTHS','HS','Some college','College','Advanced'], data=df)
 
 #%%
@@ -551,9 +552,23 @@ print(modelemplLogitFit.summary())
 
 
 # %%
+def cleanDfeduc(row):
+  theedu = row["educ"]
+  return (0 if (theedu=="HS") else 1 if (theedu=="Some college") else 2 if (theedu=="College") else 3 if (theedu=="Advanced") else 4 if (theedu=="LTHS") else np.nan)
+# end function cleanDfeduc
+df['educ'] = df.apply(cleanDfeduc, axis=1)
+
+# wbho
+# White = 0, Hispanic = 1, black = 2, other = 3
+def cleanDfwbho(row):
+  thewbho = row["wbho"]
+  return (0 if (thewbho=="White") else 1 if (thewbho=="Hispanic") else 2 if (thewbho=="Black") else 3 if (thewbho=="Other") else np.nan)
+# end function cleanDfeduc
+df['wbho'] = df.apply(cleanDfwbho, axis=1)
+df = df.dropna(subset=['age','female','citizen','married','educ','wbho','ownchild','vet','empl'])
 # Prepare our X data (features, predictors, regressors) and y data (target, dependent variable)
-xempl = cleaned_df[['age','female','citizen','married','educ','wbho','ownchild','vet']]
-yempl = cleaned_df['empl']
+xempl = df[['age','female','citizen','married','educ','wbho','ownchild','vet']]
+yempl = df['empl']
 print(type(xempl))
 print(type(yempl))
 # %%
@@ -562,13 +577,8 @@ print(type(yempl))
 from sklearn.tree import DecisionTreeClassifier
 # Import train_test_split
 from sklearn.model_selection import train_test_split
-# Import accuracy_score
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import confusion_matrix 
-from sklearn.metrics import classification_report
-
 # Split dataset into 80% train, 20% test
-X_trainempl, X_testempl, y_trainempl, y_testempl= train_test_split(X_trainempl,y_trainempl, stratify=yempl,test_size=0.20, random_state=101)
+X_trainempl, X_testempl, y_trainempl, y_testempl= train_test_split(xempl,yempl, stratify=yempl,test_size=0.20, random_state=1)
 
 # %%
 from sklearn.linear_model import LogisticRegression
@@ -578,17 +588,6 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix 
 from sklearn.metrics import classification_report
-#%%
-# Instantiate dtree
-dtree_empl = DecisionTreeClassifier(max_depth=5, random_state=1)
-# Fit dt to the training set
-dtree_empl.fit(X_trainempl,y_trainempl)
-# Predict test set labels
-y_predempl = dtree_empl.predict(X_testempl)
-# Evaluate test-set accuracy
-print(accuracy_score(y_testempl, y_predempl))
-print(confusion_matrix(y_testempl, y_predempl))
-print(classification_report(y_testempl, y_predempl))
 
 # %%
 # SVC
@@ -602,141 +601,74 @@ print(classification_report(y_testempl, svc.predict(X_testempl)))
 #%%
 # SVC(kernel="linear")
 svc_linearkernal = SVC(kernel="linear")
-svc_linearkernal.fit(X_train,y_train)
-print(f'svc_linearkernal train score:  {svc_linearkernal.score(X_train,y_train)}')
-print(f'svc_linearkernal test score:  {svc_linearkernal.score(X_test,y_test)}')
-print(confusion_matrix(y_test, svc_linearkernal.predict(X_test)))
-print(classification_report(y_test, svc_linearkernal.predict(X_test)))
+svc_linearkernal.fit(X_trainempl,y_trainempl)
+print(f'svc_linearkernal train score:  {svc_linearkernal.score(X_trainempl,y_trainempl)}')
+print(f'svc_linearkernal test score:  {svc_linearkernal.score(X_testempl,y_testempl)}')
+print(confusion_matrix(y_testempl, svc_linearkernal.predict(X_testempl)))
+print(classification_report(y_testempl, svc_linearkernal.predict(X_testempl)))
 
 #%%
 # linearSVC 
 linearSVC = LinearSVC()
-linearSVC.fit(X_train,y_train)
-print(f'linearSVC train score:  {linearSVC.score(X_train,y_train)}')
-print(f'linearSVC test score:  {linearSVC.score(X_test,y_test)}')
-print(confusion_matrix(y_test, linearSVC.predict(X_test)))
-print(classification_report(y_test, linearSVC.predict(X_test)))
+linearSVC.fit(X_trainempl,y_trainempl)
+print(f'linearSVC train score:  {linearSVC.score(X_trainempl,y_trainempl)}')
+print(f'linearSVC test score:  {linearSVC.score(X_testempl,y_testempl)}')
+print(confusion_matrix(y_testempl, linearSVC.predict(X_testempl)))
+print(classification_report(y_testempl, linearSVC.predict(X_testempl)))
 
 #%% 
 # logistic regression 
 lr = LogisticRegression()
-lr.fit(X_train,y_train)
-print(f'lr train score:  {lr.score(X_train,y_train)}')
-print(f'lr test score:  {lr.score(X_test,y_test)}')
-print(confusion_matrix(y_test, lr.predict(X_test)))
-print(classification_report(y_test, lr.predict(X_test)))
+lr.fit(X_trainempl,y_trainempl)
+print(f'lr train score:  {lr.score(X_trainempl,y_trainempl)}')
+print(f'lr test score:  {lr.score(X_testempl,y_testempl)}')
+print(confusion_matrix(y_testempl, lr.predict(X_testempl)))
+print(classification_report(y_testempl, lr.predict(X_testempl)))
 
 #%%
 # KNN
 knn = KNeighborsClassifier(n_neighbors=3)
-knn.fit(X_train,y_train)
-print(f'knn train score:  {knn.score(X_train,y_train)}')
-print(f'knn test score:  {knn.score(X_test,y_test)}')
-print(confusion_matrix(y_test, lr.predict(X_test)))
-print(classification_report(y_test, knn.predict(X_test)))
+knn.fit(X_trainempl,y_trainempl)
+print(f'knn train score:  {knn.score(X_trainempl,y_trainempl)}')
+print(f'knn test score:  {knn.score(X_testempl,y_testempl)}')
+print(confusion_matrix(y_testempl, lr.predict(X_testempl)))
+print(classification_report(y_testempl, knn.predict(X_testempl)))
 
 #%%
 # Decision tree classifier
 # Instantiate dtree
 dtree = DecisionTreeClassifier(max_depth=5, random_state=1)
 # Fit dt to the training set
-dtree.fit(X_train,y_train)
+dtree.fit(X_trainempl,y_trainempl)
 # Predict test set labels
-y_pred = dtree.predict(X_test)
+y_pred = dtree.predict(X_testempl)
 # Evaluate test-set accuracy
 print(f'Decision tree train score:  {dtree.score(X_train,y_train)}')
 print(f'Decision tree score:  {dtree.score(X_test,y_test)}')
 print(confusion_matrix(y_test, dtree.predict(X_test)))
 print(classification_report(y_test, dtree.predict(X_test)))
+print(f'Decision tree train score:  {dtree.score(X_trainempl,y_trainempl)}')
+print(f'Decision tree score:  {dtree.score(X_testempl,y_testempl)}')
+print(confusion_matrix(y_testempl, dtree.predict(X_testempl)))
+print(classification_report(y_testempl, dtree.predict(X_testempl)))
 
 # %%
-# Time take 
 from sklearn.model_selection import cross_val_score
+%timeit -r 1 print (f'\n SVC CV accuracy score: { cross_val_score(svc, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' ) 
+# 2min 12s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
+%timeit -r 1 print (f'\n SVC_linearkernal CV accuracy score: { cross_val_score(svc_linearkernal, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' ) 
+# 13min 28s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
+%timeit -r 1 print (f'\n linear SVC CV accuracy score: { cross_val_score(linearSVC, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' ) 
+# 13.9 s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
+%timeit -r 1 print (f'\n logistic CV accuracy score: { cross_val_score(lr, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' ) 
+# 1.42 s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
+%timeit -r 1 print (f'\n KNN CV accuracy score: { cross_val_score(knn, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' ) 
+# 1.47 s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
+%timeit -r 1 print (f'\n tree CV accuracy score: { cross_val_score(dtree, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' ) 
+# 187 ms ± 0 ns per loop (mean ± std. dev. of 1 run, 10 loops each)
 
-# logit
-%timeit -r 1 print(f'\n logist CV accuracy score: { cross_val_score(sklearn_wageModellogit, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' ) 
+# Tree CV is the fastest, SVC CV is the slowest
 
-# KNN
-%timeit -r 1 print(f'\n KNN CV accuracy score: { cross_val_score(knn_split_5, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' ) 
-
-# DecisionTree
-%timeit -r 1 print(f'\n tree CV accuracy score: { cross_val_score(dtreewage_entropy_5, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
-
-# SVC()
-%timeit -r 1 print(f'\n SVC CV accuracy score: { cross_val_score(svcwage_auto, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
-
-# SVC(kernel="linear")
-%timeit -r 1 print(f'\n SVC_kernel_linear CV accuracy score: { cross_val_score(svcwage_kernel_linear, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
-
-# LinearSVC()
-%timeit -r 1 print(f'\n LinearSVC CV accuracy score: { cross_val_score(svcwage_linearsvc, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
-
-# %%
-# Horizontal barplot to compare each score for wage model
-# libraries
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import precision_score
-from sklearn.metrics import recall_score
-from sklearn.metrics import f1_score
-
-# accuracy_score
-# Make score dataset
-height = [accuracy_score(y_testwage, sklearn_wageModellogit_predictions), accuracy_score(y_testwage, knn_wagepredictions), accuracy_score(y_testwage, dtreewage_entropy_5_pred), accuracy_score(y_testwage, svcwage_auto_pred), accuracy_score(y_testwage, y_pred_kernel_linear), accuracy_score(y_testwage, y_pred_linearsvc)]
-bars = ('Logit', 'KNN', 'Tree', 'SVC', 'SVCkernel', 'LinearSVC')
-y_pos = np.arange(len(bars))
-# Create horizontal bars
-plt.barh(y_pos, height)
-# Create names on the y-axis
-plt.yticks(y_pos, bars)
-plt.title('Accuracy score for six classifiers (Wage model)' )
-plt.savefig('Accuracy_score_wagemodel.png')
-# Show graphic
-plt.show()
-
-# precision_score
-# Make score dataset
-height = [precision_score(y_testwage, sklearn_wageModellogit_predictions, average='weighted'), precision_score(y_testwage, knn_wagepredictions, average='weighted'), precision_score(y_testwage, dtreewage_entropy_5_pred, average='weighted'), precision_score(y_testwage, svcwage_auto_pred, average='weighted'), precision_score(y_testwage, y_pred_kernel_linear, average='weighted'), precision_score(y_testwage, y_pred_linearsvc, average='weighted')]
-bars = ('Logit', 'KNN', 'Tree', 'SVC', 'SVCkernel', 'LinearSVC')
-y_pos = np.arange(len(bars))
-# Create horizontal bars
-plt.barh(y_pos, height)
-# Create names on the y-axis
-plt.yticks(y_pos, bars)
-plt.title('Precision score for six classifiers (Wage model)')
-plt.savefig('Precision_score_wagemodel.png')
-# Show graphic
-plt.show()
- 
-# recall_score
-# Make score dataset
-height = [recall_score(y_testwage, sklearn_wageModellogit_predictions, average='weighted'), recall_score(y_testwage, knn_wagepredictions, average='weighted'), recall_score(y_testwage, dtreewage_entropy_5_pred, average='weighted'), recall_score(y_testwage, svcwage_auto_pred, average='weighted'), recall_score(y_testwage, y_pred_kernel_linear, average='weighted'), recall_score(y_testwage, y_pred_linearsvc, average='weighted')]
-bars = ('Logit', 'KNN', 'Tree', 'SVC', 'SVCkernel', 'LinearSVC')
-y_pos = np.arange(len(bars))
-# Create horizontal bars
-plt.barh(y_pos, height)
-# Create names on the y-axis
-plt.yticks(y_pos, bars)
-plt.title('Recall score for six classifiers (Wage model)')
-plt.savefig('Recall_score_wagemodel.png')
-# Show graphic
-plt.show()
-
-
-# f1_score
-# Make score dataset
-height = [f1_score(y_testwage, sklearn_wageModellogit_predictions, average='weighted'), f1_score(y_testwage, knn_wagepredictions, average='weighted'), f1_score(y_testwage, dtreewage_entropy_5_pred, average='weighted'), f1_score(y_testwage, svcwage_auto_pred, average='weighted'), f1_score(y_testwage, y_pred_kernel_linear, average='weighted'), f1_score(y_testwage, y_pred_linearsvc, average='weighted')]
-bars = ('Logit', 'KNN', 'Tree', 'SVC', 'SVCkernel', 'LinearSVC')
-y_pos = np.arange(len(bars))
-# Create horizontal bars
-plt.barh(y_pos, height)
-# Create names on the y-axis
-plt.yticks(y_pos, bars)
-plt.title('F1_score for six classifiers (Wage model)')
-plt.savefig('F1_score_wagemodel.png')
-# Show graphic
-plt.show()
 # %%
 
 
