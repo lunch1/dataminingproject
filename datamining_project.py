@@ -142,11 +142,11 @@ print(table)
 import seaborn as sns
 kde=sns.kdeplot(cleaned_df.age, cleaned_df.rw, cmap="Blues", shade=True)
 kde.set_xlabel('Age',fontsize=10)
-kde.set_ylabel('Real Wage',fontsize=10)
+kde.set_ylabel('Real Wage (Thousands of Dollars)',fontsize=10)
 kde.set_title('Age and Real Wage',fontsize=15)
 # %%
 #gender by education level
-countplot=sns.countplot(x='educ', hue='female', order=['HS','LTHS','Some college','College','Advanced'],data=cleaned_df,palette=['skyblue','lightsalmon'])
+countplot=sns.countplot(x='educ', hue='female', order=['LTHS','HS','Some college','College','Advanced'],data=cleaned_df,palette=['skyblue','lightsalmon'])
 leg = countplot.get_legend()
 leg.set_title("Gender")
 labs = leg.texts
@@ -158,26 +158,28 @@ countplot.set_title('Education Level by Gender',fontsize=15)
 
 # %%
 #education level by race
-fig, axes = plt.subplots(nrows=2, ncols=2,figsize=(12, 6))
-plt.suptitle('Education Level by Race',fontsize=20)
-plt.subplots_adjust(hspace=.4)
 white = cleaned_df[cleaned_df['wbho']=='White']
 hispanic = cleaned_df[cleaned_df['wbho']=='Hispanic']
 black = cleaned_df[cleaned_df['wbho']=='Black']
 other = cleaned_df[cleaned_df['wbho']=='Other']
 
-ax = sns.countplot(x='educ',order=['HS','LTHS','Some college','College','Advanced'],data=white,ax = axes[0,0],palette='BuGn_r')
+fig, axes = plt.subplots(nrows=2, ncols=2,figsize=(12, 6))
+plt.suptitle('Education Level by Race',fontsize=20)
+plt.subplots_adjust(hspace=.4)
+
+ax = sns.countplot(x='educ',order=['LTHS','HS','Some college','College','Advanced'],data=white,ax = axes[0,0],palette='BuGn_r')
 ax.set_xlabel('')
 ax.set_title('White')
-ax = sns.countplot(x='educ',order=['HS','LTHS','Some college','College','Advanced'],data=hispanic,ax = axes[0,1],palette='BuGn_r')
+ax = sns.countplot(x='educ',order=['LTHS','HS','Some college','College','Advanced'],data=hispanic,ax = axes[0,1],palette='BuGn_r')
 ax.set_xlabel('')
 ax.set_title('Hispanic')
-ax = sns.countplot(x='educ',order=['HS','LTHS','Some college','College','Advanced'],data=black,ax = axes[1,0],palette='BuGn_r')
+ax = sns.countplot(x='educ',order=['LTHS','HS','Some college','College','Advanced'],data=black,ax = axes[1,0],palette='BuGn_r')
 ax.set_xlabel('')
 ax.set_title('Black')
-ax = sns.countplot(x='educ',order=['HS','LTHS','Some college','College','Advanced'],data=other,ax = axes[1,1],palette='BuGn_r')
+ax = sns.countplot(x='educ',order=['LTHS','HS','Some college','College','Advanced'],data=other,ax = axes[1,1],palette='BuGn_r')
 ax.set_xlabel('')
 ax.set_title('Other')
+plt.show()
 #%%
 #types of region
 cleaned_df.centcity.sum()
@@ -205,14 +207,10 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.linear_model import LogisticRegressionCV
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
-<<<<<<< HEAD
 from sklearn.metrics import recall_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
-=======
-
-<<<<<<< HEAD
 # age - age (Numeric)
 # female - sex (0 = male, 1 = female)
 # wbho - Race (white, Hispanic, Black, Other)
@@ -238,7 +236,6 @@ from sklearn.metrics import f1_score
 # hourslw - Hours last week, all jobs (Numeric)
 # rw - Real hourly wage, 2019$ (Numeric)
 # multjobn - Number of jobs (Numeric)
-=======
 # wbho
 # White = 0, Hispanic = 1, black = 2, other = 3
 def cleanDfwbho(row):
@@ -246,8 +243,6 @@ def cleanDfwbho(row):
   return (0 if (thewbho=="White") else 1 if (thewbho=="Hispanic") else 2 if (thewbho=="Black") else 3 if (thewbho=="Other") else np.nan)
 # end function cleanDfwbho
 cleaned_df['wbho'] = df.apply(cleanDfwbho, axis=1)
-
->>>>>>> master
 #choosing variables
 logit_df=cleaned_df[['age','female','rw','hourslw']]
 #making a 4:1 train/test split
@@ -259,7 +254,7 @@ predictions_gender = logmodel_gender.predict(X_test_gender)
 confusion_matrix = confusion_matrix(y_test_gender, predictions_gender)
 print(confusion_matrix)
 print(classification_report(y_test_gender,predictions_gender))
-logmodel.score(X_test_gender, y_test_gender)
+logmodel_gender.score(X_test_gender, y_test_gender)
 print(f"The logit accuracy score is {accuracy_score(y_test_gender, predictions_gender)}")
 print(f"The logit precision score is {precision_score(y_test_gender, predictions_gender)}")
 print(f"The logit recall score is {recall_score(y_test_gender, predictions_gender)}")
@@ -280,6 +275,26 @@ print(f"The logit cv accuracy score is {accuracy_score(y_test_gender, cv_predict
 print(f"The logit cv precision score is {precision_score(y_test_gender, cv_predictions_gender)}")
 print(f"The logit cv recall score is {recall_score(y_test_gender, cv_predictions_gender)}")
 print(f"The logit cv f1 score is {f1_score(y_test_gender, cv_predictions_gender)}")
+#%%
+from sklearn.metrics import roc_curve
+from sklearn.metrics import roc_auc_score
+from matplotlib import pyplot
+lr_probs = cv_model_gender.predict_proba(X_test_gender)
+lr_probs = lr_probs[:, 1]
+ns_probs = [0 for _ in range(len(y_test_gender))]
+ns_auc = roc_auc_score(y_test_gender, ns_probs)
+lr_auc = roc_auc_score(y_test_gender, lr_probs)
+print('No Skill: ROC AUC=%.3f' % (ns_auc))
+print('Logistic: ROC AUC=%.3f' % (lr_auc))
+ns_fpr, ns_tpr, _ = roc_curve(y_test_gender, ns_probs)
+lr_fpr, lr_tpr, _ = roc_curve(y_test_gender, lr_probs)
+pyplot.plot(ns_fpr, ns_tpr, linestyle='--', label='No Skill')
+pyplot.plot(lr_fpr, lr_tpr, marker='.', label='Logistic',color='mediumseagreen')
+pyplot.xlabel('False Positive Rate',fontsize=12)
+pyplot.ylabel('True Positive Rate',fontsize=12)
+pyplot.title('Logistic Regression with CV',fontsize=15)
+pyplot.legend()
+pyplot.show()
 #%%
 #timing cv logistic regression
 %timeit -r 1 print(f'\n logit CV accuracy score: { cross_val_score(cv_model_gender, X_train_gender, y_train_gender, cv = 10 , scoring = "accuracy" ) } \n ' )
