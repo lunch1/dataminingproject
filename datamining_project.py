@@ -556,51 +556,108 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix 
 from sklearn.metrics import classification_report
+from sklearn.metrics import recall_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import f1_score
+import statsmodels.api as sm 
+from statsmodels.formula.api import glm
 
-# %%
-# SVC
-svc = SVC()
-svc.fit(X_trainempl,y_trainempl)
-print(f'svc train score:  {svc.score(X_trainempl,y_trainempl)}')
-print(f'svc test score:  {svc.score(X_testempl,y_testempl)}')
-print(confusion_matrix(y_testempl, svc.predict(X_testempl)))
-print(classification_report(y_testempl, svc.predict(X_testempl)))
-
-#%%
-# SVC(kernel="linear")
-svc_linearkernal = SVC(kernel="linear")
-svc_linearkernal.fit(X_trainempl,y_trainempl)
-print(f'svc_linearkernal train score:  {svc_linearkernal.score(X_trainempl,y_trainempl)}')
-print(f'svc_linearkernal test score:  {svc_linearkernal.score(X_testempl,y_testempl)}')
-print(confusion_matrix(y_testempl, svc_linearkernal.predict(X_testempl)))
-print(classification_report(y_testempl, svc_linearkernal.predict(X_testempl)))
-
-#%%
-# linearSVC 
-linearSVC = LinearSVC()
-linearSVC.fit(X_trainempl,y_trainempl)
-print(f'linearSVC train score:  {linearSVC.score(X_trainempl,y_trainempl)}')
-print(f'linearSVC test score:  {linearSVC.score(X_testempl,y_testempl)}')
-print(confusion_matrix(y_testempl, linearSVC.predict(X_testempl)))
-print(classification_report(y_testempl, linearSVC.predict(X_testempl)))
 
 #%% 
 # logistic regression 
-lr = LogisticRegression()
-lr.fit(X_trainempl,y_trainempl)
-print(f'lr train score:  {lr.score(X_trainempl,y_trainempl)}')
-print(f'lr test score:  {lr.score(X_testempl,y_testempl)}')
-print(confusion_matrix(y_testempl, lr.predict(X_testempl)))
-print(classification_report(y_testempl, lr.predict(X_testempl)))
+lr_empl = LogisticRegression()
+lr_empl.fit(X_trainempl,y_trainempl)
+predictionsempl = lr_empl.predict(X_testempl)
+
+print(classification_report(y_testempl,predictionsempl))
+lr_empl.score(X_testempl, y_testempl)
+print(f"The logit accuracy score is {accuracy_score(y_testempl, predictionsempl)}")
+print(f"The logit precision score is {precision_score(y_testempl, predictionsempl)}")
+print(f"The logit recall score is {recall_score(y_testempl, predictionsempl)}")
+print(f"The logit f1 score is {f1_score(y_testempl, predictionsempl)}")
+
+#timing logistic regression
+from sklearn.model_selection import cross_val_score
+%timeit -r 1 print(f'\n logit accuracy score: { cross_val_score(lr_empl, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' )
+#1.44 s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
+
+#%%
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_curve
+logit_roc_auc = roc_auc_score(y_testempl, predictionsempl)
+fpr, tpr, thresholds = roc_curve(y_testempl, predictionsempl)
+plt.figure()
+plt.plot(fpr, tpr, label='Logistic Regression (area = %0.2f)' % logit_roc_auc)
+plt.plot([0, 1], [0, 1],'r--')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver operating characteristic')
+plt.legend(loc="lower right")
+plt.savefig('Log_ROC')
+plt.show()
+
+#%%
+# logistic regression with CV model for empl with the train set, and score it with the test set.
+CV_emplModellogit = LogisticRegressionCV()  # instantiate
+CV_emplModellogit .fit(X_trainempl, y_trainempl)
+print('Logit model accuracy (with the test set):', CV_emplModellogit.score(X_testempl, y_testempl))
+
+CV_emplModellogit_predictions = CV_emplModellogit.predict(X_testempl)
+#print(sklearn_wageModellogit_predictions)
+
+print(classification_report(y_testempl,CV_emplModellogit_predictions))
+print(f"The logit cv accuracy score is {accuracy_score(y_testempl, CV_emplModellogit_predictions)}")
+print(f"The logit cv precision score is {precision_score(y_testempl, CV_emplModellogit_predictions, average='weighted')}")
+print(f"The logit cv recall score is {recall_score(y_testempl, CV_emplModellogit_predictions, average='weighted')}")
+print(f"The logit cv f1 score is {f1_score(y_testempl, CV_emplModellogit_predictions, average='weighted')}")
+
+%timeit -r 1 print(f'\n logit CV accuracy score: { cross_val_score(CV_emplModellogit, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' )
+#15.1 s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
 
 #%%
 # KNN
-knn = KNeighborsClassifier(n_neighbors=3)
-knn.fit(X_trainempl,y_trainempl)
-print(f'knn train score:  {knn.score(X_trainempl,y_trainempl)}')
-print(f'knn test score:  {knn.score(X_testempl,y_testempl)}')
-print(confusion_matrix(y_testempl, lr.predict(X_testempl)))
-print(classification_report(y_testempl, knn.predict(X_testempl)))
+#knn model for empl
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import GridSearchCV
+from sklearn import metrics
+from sklearn.metrics import precision_recall_fscore_support
+knn_empl = KNeighborsClassifier( )
+#this will run a range of k values and return the best parameters
+k_range = list(range(1,30))
+weights_options = ['uniform','distance']
+k_grid = dict(n_neighbors=k_range, weights = weights_options)
+grid = GridSearchCV(knn_empl, k_grid, cv=10, scoring = 'precision')
+grid.fit(X_trainempl, y_trainempl)
+grid.cv_results_
+print ("Best Score: ",str(grid.best_score_))
+print ("Best Parameters: ",str(grid.best_params_))
+print ("Best Estimators: ",str(grid.best_estimator_))
+#so the best value of k is 2
+y_pred_empl = grid.predict(X_testempl)
+
+print(f"The knn accuracy score is {accuracy_score(y_testempl, y_pred_empl)}")
+print(f"The knn precision score is {precision_score(y_testempl, y_pred_empl)}")
+print(f"The knn recall score is {recall_score(y_testempl, y_pred_empl)}")
+print(f"The knn f1 score is {f1_score(y_testempl, y_pred_empl)}")
+#timing knn
+%timeit -r 1 print(f'\n knn accuracy score: { cross_val_score(knn_empl, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' )
+#1.28 s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
+
+# %%
+# SVC
+svc_empl = SVC()
+svc_empl.fit(X_trainempl,y_trainempl)
+svc_predictempl = svc_empl.predict(X_testempl)
+
+print(f"The svc accuracy score is {accuracy_score(y_testempl, svc_predictempl)}")
+print(f"The svc precision score is {precision_score(y_testempl, svc_predictempl)}")
+print(f"The svc recall score is {recall_score(y_testempl, svc_predictempl)}")
+print(f"The svc f1 score is {f1_score(y_testempl, svc_predictempl)}")
+
+%timeit -r 1 print(f'\n svc accuracy score: { cross_val_score(svc_empl, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' )
+#2min 11s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
 
 #%%
 # Decision tree classifier
@@ -609,28 +666,18 @@ dtree = DecisionTreeClassifier(max_depth=5, random_state=1)
 # Fit dt to the training set
 dtree.fit(X_trainempl,y_trainempl)
 # Predict test set labels
-y_pred = dtree.predict(X_testempl)
+dtree_predempl = dtree.predict(X_testempl)
 # Evaluate test-set accuracy
-print(f'Decision tree train score:  {dtree.score(X_trainempl,y_trainempl)}')
-print(f'Decision tree score:  {dtree.score(X_testempl,y_testempl)}')
-print(confusion_matrix(y_testempl, dtree.predict(X_testempl)))
-print(classification_report(y_testempl, dtree.predict(X_testempl)))
+print(classification_report(y_testempl, dtree_predempl))
+print()
+print(f"The dtree_empl accuracy score is {accuracy_score(y_testempl, dtree_predempl)}")
+print(f"The dtree_empl  precision score is {precision_score(y_testempl, dtree_predempl, average='weighted')}")
+print(f"The dtree_empl  recall score is {recall_score(y_testempl, dtree_predempl, average='weighted')}")
+print(f"The dtree_empl  f1 score is {f1_score(y_testempl, dtree_predempl, average='weighted')}")
 
-# %%
-from sklearn.model_selection import cross_val_score
-%timeit -r 1 print (f'\n SVC CV accuracy score: { cross_val_score(svc, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' ) 
-# 2min 12s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
-%timeit -r 1 print (f'\n SVC_linearkernal CV accuracy score: { cross_val_score(svc_linearkernal, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' ) 
-# 13min 28s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
-%timeit -r 1 print (f'\n linear SVC CV accuracy score: { cross_val_score(linearSVC, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' ) 
-# 13.9 s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
-%timeit -r 1 print (f'\n logistic CV accuracy score: { cross_val_score(lr, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' ) 
-# 1.42 s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
-%timeit -r 1 print (f'\n KNN CV accuracy score: { cross_val_score(knn, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' ) 
-# 1.47 s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
 %timeit -r 1 print (f'\n tree CV accuracy score: { cross_val_score(dtree, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' ) 
-# 187 ms ± 0 ns per loop (mean ± std. dev. of 1 run, 10 loops each)
+# 191 ms ± 0 ns per loop (mean ± std. dev. of 1 run, 10 loops each
 
-# Tree CV is the fastest, SVC CV is the slowest
+
 
 # %%
