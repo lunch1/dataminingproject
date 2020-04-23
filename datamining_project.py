@@ -372,7 +372,7 @@ print(sklearn_wageModellogit.predict_proba(x_testwage[:8]))
 print('Logit model accuracy (with the test set):', sklearn_wageModellogit.score(x_testwage, sklearn_wageModellogit_predictions))
 confusion_matrix = confusion_matrix(y_testwage, sklearn_wageModellogit_predictions)
 print(confusion_matrix)
-print(classification_report(y_testwage,sklearn_wageModellogit_predi=ctions))
+print(classification_report(y_testwage,sklearn_wageModellogit_predictions))
 
 #%%
 # Second, move to KNN
