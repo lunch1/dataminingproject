@@ -588,51 +588,108 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix 
 from sklearn.metrics import classification_report
+from sklearn.metrics import recall_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import f1_score
+import statsmodels.api as sm 
+from statsmodels.formula.api import glm
 
-# %%
-# SVC
-svc = SVC()
-svc.fit(X_trainempl,y_trainempl)
-print(f'svc train score:  {svc.score(X_trainempl,y_trainempl)}')
-print(f'svc test score:  {svc.score(X_testempl,y_testempl)}')
-print(confusion_matrix(y_testempl, svc.predict(X_testempl)))
-print(classification_report(y_testempl, svc.predict(X_testempl)))
-
-#%%
-# SVC(kernel="linear")
-svc_linearkernal = SVC(kernel="linear")
-svc_linearkernal.fit(X_trainempl,y_trainempl)
-print(f'svc_linearkernal train score:  {svc_linearkernal.score(X_trainempl,y_trainempl)}')
-print(f'svc_linearkernal test score:  {svc_linearkernal.score(X_testempl,y_testempl)}')
-print(confusion_matrix(y_testempl, svc_linearkernal.predict(X_testempl)))
-print(classification_report(y_testempl, svc_linearkernal.predict(X_testempl)))
-
-#%%
-# linearSVC 
-linearSVC = LinearSVC()
-linearSVC.fit(X_trainempl,y_trainempl)
-print(f'linearSVC train score:  {linearSVC.score(X_trainempl,y_trainempl)}')
-print(f'linearSVC test score:  {linearSVC.score(X_testempl,y_testempl)}')
-print(confusion_matrix(y_testempl, linearSVC.predict(X_testempl)))
-print(classification_report(y_testempl, linearSVC.predict(X_testempl)))
 
 #%% 
 # logistic regression 
-lr = LogisticRegression()
-lr.fit(X_trainempl,y_trainempl)
-print(f'lr train score:  {lr.score(X_trainempl,y_trainempl)}')
-print(f'lr test score:  {lr.score(X_testempl,y_testempl)}')
-print(confusion_matrix(y_testempl, lr.predict(X_testempl)))
-print(classification_report(y_testempl, lr.predict(X_testempl)))
+lr_empl = LogisticRegression()
+lr_empl.fit(X_trainempl,y_trainempl)
+predictionsempl = lr_empl.predict(X_testempl)
+
+print(classification_report(y_testempl,predictionsempl))
+lr_empl.score(X_testempl, y_testempl)
+print(f"The logit accuracy score is {accuracy_score(y_testempl, predictionsempl)}")
+print(f"The logit precision score is {precision_score(y_testempl, predictionsempl)}")
+print(f"The logit recall score is {recall_score(y_testempl, predictionsempl)}")
+print(f"The logit f1 score is {f1_score(y_testempl, predictionsempl)}")
+
+#timing logistic regression
+from sklearn.model_selection import cross_val_score
+%timeit -r 1 print(f'\n logit accuracy score: { cross_val_score(lr_empl, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' )
+#1.44 s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
+
+#%%
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_curve
+logit_roc_auc = roc_auc_score(y_testempl, predictionsempl)
+fpr, tpr, thresholds = roc_curve(y_testempl, predictionsempl)
+plt.figure()
+plt.plot(fpr, tpr, label='Logistic Regression (area = %0.2f)' % logit_roc_auc)
+plt.plot([0, 1], [0, 1],'r--')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver operating characteristic')
+plt.legend(loc="lower right")
+plt.savefig('Log_ROC')
+plt.show()
+
+#%%
+# logistic regression with CV model for empl with the train set, and score it with the test set.
+CV_emplModellogit = LogisticRegressionCV()  # instantiate
+CV_emplModellogit .fit(X_trainempl, y_trainempl)
+print('Logit model accuracy (with the test set):', CV_emplModellogit.score(X_testempl, y_testempl))
+
+CV_emplModellogit_predictions = CV_emplModellogit.predict(X_testempl)
+#print(sklearn_wageModellogit_predictions)
+
+print(classification_report(y_testempl,CV_emplModellogit_predictions))
+print(f"The logit cv accuracy score is {accuracy_score(y_testempl, CV_emplModellogit_predictions)}")
+print(f"The logit cv precision score is {precision_score(y_testempl, CV_emplModellogit_predictions, average='weighted')}")
+print(f"The logit cv recall score is {recall_score(y_testempl, CV_emplModellogit_predictions, average='weighted')}")
+print(f"The logit cv f1 score is {f1_score(y_testempl, CV_emplModellogit_predictions, average='weighted')}")
+
+%timeit -r 1 print(f'\n logit CV accuracy score: { cross_val_score(CV_emplModellogit, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' )
+#15.1 s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
 
 #%%
 # KNN
-knn = KNeighborsClassifier(n_neighbors=3)
-knn.fit(X_trainempl,y_trainempl)
-print(f'knn train score:  {knn.score(X_trainempl,y_trainempl)}')
-print(f'knn test score:  {knn.score(X_testempl,y_testempl)}')
-print(confusion_matrix(y_testempl, lr.predict(X_testempl)))
-print(classification_report(y_testempl, knn.predict(X_testempl)))
+#knn model for empl
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import GridSearchCV
+from sklearn import metrics
+from sklearn.metrics import precision_recall_fscore_support
+knn_empl = KNeighborsClassifier( )
+#this will run a range of k values and return the best parameters
+k_range = list(range(1,30))
+weights_options = ['uniform','distance']
+k_grid = dict(n_neighbors=k_range, weights = weights_options)
+grid = GridSearchCV(knn_empl, k_grid, cv=10, scoring = 'precision')
+grid.fit(X_trainempl, y_trainempl)
+grid.cv_results_
+print ("Best Score: ",str(grid.best_score_))
+print ("Best Parameters: ",str(grid.best_params_))
+print ("Best Estimators: ",str(grid.best_estimator_))
+#so the best value of k is 2
+y_pred_empl = grid.predict(X_testempl)
+
+print(f"The knn accuracy score is {accuracy_score(y_testempl, y_pred_empl)}")
+print(f"The knn precision score is {precision_score(y_testempl, y_pred_empl)}")
+print(f"The knn recall score is {recall_score(y_testempl, y_pred_empl)}")
+print(f"The knn f1 score is {f1_score(y_testempl, y_pred_empl)}")
+#timing knn
+%timeit -r 1 print(f'\n knn accuracy score: { cross_val_score(knn_empl, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' )
+#1.28 s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
+
+# %%
+# SVC
+svc_empl = SVC()
+svc_empl.fit(X_trainempl,y_trainempl)
+svc_predictempl = svc_empl.predict(X_testempl)
+
+print(f"The svc accuracy score is {accuracy_score(y_testempl, svc_predictempl)}")
+print(f"The svc precision score is {precision_score(y_testempl, svc_predictempl)}")
+print(f"The svc recall score is {recall_score(y_testempl, svc_predictempl)}")
+print(f"The svc f1 score is {f1_score(y_testempl, svc_predictempl)}")
+
+%timeit -r 1 print(f'\n svc accuracy score: { cross_val_score(svc_empl, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' )
+#2min 11s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
 
 #%%
 # Decision tree classifier
@@ -641,7 +698,7 @@ dtree = DecisionTreeClassifier(max_depth=5, random_state=1)
 # Fit dt to the training set
 dtree.fit(X_trainempl,y_trainempl)
 # Predict test set labels
-y_pred = dtree.predict(X_testempl)
+dtree_predempl = dtree.predict(X_testempl)
 # Evaluate test-set accuracy
 print(f'Decision tree train score:  {dtree.score(X_train,y_train)}')
 print(f'Decision tree score:  {dtree.score(X_test,y_test)}')
@@ -651,25 +708,461 @@ print(f'Decision tree train score:  {dtree.score(X_trainempl,y_trainempl)}')
 print(f'Decision tree score:  {dtree.score(X_testempl,y_testempl)}')
 print(confusion_matrix(y_testempl, dtree.predict(X_testempl)))
 print(classification_report(y_testempl, dtree.predict(X_testempl)))
+print(classification_report(y_testempl, dtree_predempl))
+print()
+print(f"The dtree_empl accuracy score is {accuracy_score(y_testempl, dtree_predempl)}")
+print(f"The dtree_empl  precision score is {precision_score(y_testempl, dtree_predempl, average='weighted')}")
+print(f"The dtree_empl  recall score is {recall_score(y_testempl, dtree_predempl, average='weighted')}")
+print(f"The dtree_empl  f1 score is {f1_score(y_testempl, dtree_predempl, average='weighted')}")
 
-# %%
-from sklearn.model_selection import cross_val_score
-%timeit -r 1 print (f'\n SVC CV accuracy score: { cross_val_score(svc, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' ) 
-# 2min 12s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
-%timeit -r 1 print (f'\n SVC_linearkernal CV accuracy score: { cross_val_score(svc_linearkernal, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' ) 
-# 13min 28s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
-%timeit -r 1 print (f'\n linear SVC CV accuracy score: { cross_val_score(linearSVC, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' ) 
-# 13.9 s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
-%timeit -r 1 print (f'\n logistic CV accuracy score: { cross_val_score(lr, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' ) 
-# 1.42 s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
-%timeit -r 1 print (f'\n KNN CV accuracy score: { cross_val_score(knn, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' ) 
-# 1.47 s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
 %timeit -r 1 print (f'\n tree CV accuracy score: { cross_val_score(dtree, X_trainempl, y_trainempl, cv = 10 , scoring = "accuracy" ) } \n ' ) 
-# 187 ms ± 0 ns per loop (mean ± std. dev. of 1 run, 10 loops each)
+# 191 ms ± 0 ns per loop (mean ± std. dev. of 1 run, 10 loops each
 
-# Tree CV is the fastest, SVC CV is the slowest
+
 
 # %%
 
+# Data Mining Project - Ignatios Draklellis
 
+# age - age (Numeric)
+# female - sex (0 = male, 1 = female)
+# wbho - White = 0, Hispanic = 1, black = 2, other = 3
+# forborn - Foreign born (0 = foriegn born, 1 = US born)
+# citizen - US citizen (0 = No-US citizen, 1 = US citizen)
+# vet - Veteran (0 = No-vateren, 1 = veteran)
+# married - Married (0 = Never married, 1 = married)
+# marstat - Marital status (Married, Never Married, Divorced, Widowed, Separated)
+# ownchild - Number of children (Numeric)
+# empl - Employed (1 = employed, 0 = unemployed or not in LF)
+# unem - Unemployed (0 = employed, 1 = unemployed)
+# nilf - Not in labor force (0 = Not in labor force, 1 = in labor force)
+# uncov - Union coverage (0 - non-Union coverage, 1 = Union coverage)
+# state - state (50 states)
+# educ - Education level (HS, Some college, College, Advanced, LTHS)
+# centcity - Central city (0 = no Central city, 1 = Central city)
+# suburb - suburbs (0 = no suburbs area, 1 = suburbs area)
+# rural - rural (0 = no rural area, 1 = rural area)
+# smsastat14 - Metro CBSA FIPS Code
+# ind_m03 - Major Industry Recode (Educational and health services, Wholesale and retail trade, Professional and business services, Manufacturing, Leisure and hospitality, Construction, Financial activities, Other  services, Transportation and utilities, Public administration, Agriculture, forestry, fishing, and hunting, Information, Mining, and Armed Forces)
+# agric - Agriculture (0 = Non-Argiculture job, 1 = Non-Agriculture job)
+# manuf - Manufacturing (0 = Non-Manufacturing job, 1 = Non-Manufacturing job)
+# hourslw - Hours last week, all jobs (Numeric)
+# rw - Real hourly wage, 2019$ (Numeric)
+# multjobn - Number of jobs (Numeric)
+#
+# 
+
+
+#%%
+# Prepare Geography Data
+import matplotlib.pyplot as plt 
+import numpy as np
+dfGeo = df[['age', 'rw', 'rural', 'forborn', 'nilf', 'hourslw', 'multjobn', 'educ', 'wbho']]
+
+#Recode
+dfGeo.wbho[dfGeo.wbho == 'White'] = 0
+dfGeo.wbho[dfGeo.wbho == 'Hispanic'] = 1
+dfGeo.wbho[dfGeo.wbho == 'Black'] = 2
+dfGeo.wbho[dfGeo.wbho == 'Other'] = 3
+
+dfGeo.educ[dfGeo.educ == 'LTHS'] = 0
+dfGeo.educ[dfGeo.educ == 'HS'] = 1
+dfGeo.educ[dfGeo.educ == 'Some college'] = 2
+dfGeo.educ[dfGeo.educ == 'College'] = 3
+dfGeo.educ[dfGeo.educ == 'Advanced'] = 4
+
+
+dfGeo = dfGeo.dropna()
+
+dfGeo.tail(5)
+
+#%%
+#Data Visuals and Graphing for Geography
+
+#Descriptive Statistics
+geoVars=dfGeo[['age','hourslw','rw']]
+tab1=geoVars.describe()
+print(tab1)
+
+#relabeling
+dfGeo.rural[dfGeo.rural == 0] = 'Urban'
+dfGeo.rural[dfGeo.rural == 1] = 'Rural'
+
+dfGeo.forborn[dfGeo.forborn == 0] = 'Immigrant'
+dfGeo.forborn[dfGeo.forborn == 1] = 'Native'
+
+dfGeo = dfGeo.rename(columns={"rural": "Geography", "forborn": "Foreign Born"})
+
+#Violin Plots
+import seaborn as sns
+sns.catplot(x="Geography", y="rw", hue="Foreign Born",
+            kind="violin", split=False, data=dfGeo)
+plt.ylabel("Real Wages (2019 US Dollars)")
+plt.title("Foreign and Native Born Wages Based on Geography")
+plt.show()
+
+# Grouped Bar Plots
+sns.catplot(x="educ", y="rw", hue="Geography", data=dfGeo, height=6, kind="bar", palette="muted")
+plt.xlabel("Education Level")
+plt.ylabel("Real Wages (2019 US Dollars)")
+plt.title("Income Disparities by Geography")
+plt.show()
+
+sns.catplot(x="educ", y="rw", hue="Foreign Born", data=dfGeo, height=6, kind="bar", palette="muted")
+plt.xlabel("Education Level")
+plt.ylabel("Real Wages (2019 US Dollars)")
+plt.title("Income Disparities by Immigration")
+plt.show()
+
+sns.catplot(x="Geography", y="rw", hue="Foreign Born", data=dfGeo, height=6, kind="bar", palette="muted")
+plt.xlabel("Education Level")
+plt.ylabel("Real Wages (2019 US Dollars)")
+plt.title("Income Disparities by Geography and Immigration")
+plt.show()
+
+
+#%%
+#Reload original data and encode strings to ints
+dfGeo = df[['age', 'rw', 'rural', 'forborn', 'nilf', 'hourslw', 'multjobn', 'educ', 'wbho']]
+
+#Recode
+dfGeo.wbho[dfGeo.wbho == 'White'] = 0
+dfGeo.wbho[dfGeo.wbho == 'Hispanic'] = 1
+dfGeo.wbho[dfGeo.wbho == 'Black'] = 2
+dfGeo.wbho[dfGeo.wbho == 'Other'] = 3
+
+dfGeo.educ[dfGeo.educ == 'LTHS'] = 0
+dfGeo.educ[dfGeo.educ == 'HS'] = 1
+dfGeo.educ[dfGeo.educ == 'Some college'] = 2
+dfGeo.educ[dfGeo.educ == 'College'] = 3
+dfGeo.educ[dfGeo.educ == 'Advanced'] = 4
+
+
+dfGeo = dfGeo.dropna()
+
+dfGeo.head(25)
+
+
+#%%
+#Make 4:1 train/test split
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegressionCV
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+
+X_train, X_test, y_train, y_test = train_test_split(dfGeo.drop('rural',axis=1), dfGeo['rural'], test_size=0.20)
+
+
+#Logistic Regression
+geoLogit = LogisticRegression() #instantiate Logit
+geoLogit.fit(X_train,y_train)
+predictions = geoLogit.predict(X_test)
+#Results
+confusion_matrix = confusion_matrix(y_test, predictions)
+print(confusion_matrix)
+print(classification_report(y_test,predictions))
+geoLogit.score(X_test, y_test)
+
+
+#CV on Logit
+cv_model=LogisticRegressionCV()
+cv_model.fit(X_train,y_train)
+cv_predictions = cv_model.predict(X_test)
+#Results
+print(classification_report(y_test,cv_predictions))
+cv_model.score(X_test, y_test)
+
+
+#%%
+# Mutiple Linear Regression
+from statsmodels.formula.api import ols
+
+linearGeoModel = ols(formula='rural ~ rw + C(nilf) + hourslw + C(forborn) + C(multjobn) + C(educ) + C(wbho)', data=dfGeo).fit()
+
+print( type(linearGeoModel) )
+print( linearGeoModel.summary() )
+
+#OLS Predictions 
+modelpredicitons = pd.DataFrame( columns=['geoModel_LM'], data= linearGeoModel.predict(dfGeo)) 
+print(modelpredicitons.shape)
+print( modelpredicitons.head() )
+
+
+
+# %%
+#Train Test 4:1 Split
+xtarget = dfGeo[['age', 'rw', 'forborn', 'nilf', 'hourslw', 'multjobn', 'educ', 'wbho']]
+ytarget = dfGeo['rural'] 
+
+print(type(xtarget))
+print(type(ytarget))
+
+#make a train-test split in 4:1 ratio. 
+import numpy as np
+from sklearn import linear_model
+from sklearn.model_selection import train_test_split
+from statsmodels.formula.api import glm
+import statsmodels.api as sm
+
+
+x_trainGeo, x_testGeo, y_trainGeo, y_testGeo = train_test_split(xtarget, ytarget, test_size = 0.2, random_state=1)
+
+print('x_trainGeo type',type(x_trainGeo))
+print('x_trainGeo shape',x_trainGeo.shape)
+print('x_testGeo type',type(x_testGeo))
+print('x_testGeo shape',x_testGeo.shape)
+print('y_trainGeo type',type(y_trainGeo))
+print('y_trainGeo shape',y_trainGeo.shape)
+print('y_testGeo type',type(y_testGeo))
+print('y_testGeo shape',y_testGeo.shape)
+
+
+#logistic regression
+geoLogitModelFit = glm(formula='rural ~ rw + C(nilf) + hourslw + C(forborn) + C(multjobn) + C(educ) + C(wbho)', data=dfGeo, family=sm.families.Binomial()).fit()
+print( geoLogitModelFit.summary() )
+
+# logistic regression model for geography with the train set, and score it with the test set.
+sklearn_geoModellogit = LogisticRegression()  # instantiate
+sklearn_geoModellogit.fit(x_trainGeo, y_trainGeo)
+print('Logit model accuracy (with the test set):', sklearn_geoModellogit.score(x_testGeo, y_testGeo))
+
+sklearn_geoModellogit_predictions = sklearn_geoModellogit.predict(x_testGeo)
+#print(sklearn_geoModellogit_predictions)
+print(sklearn_geoModellogit.predict_proba(x_trainGeo[:8]))
+print(sklearn_geoModellogit.predict_proba(x_testGeo[:8]))
+
+#results (Logit)
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+print('Logit model accuracy (with the test set):', sklearn_geoModellogit.score(x_testGeo, sklearn_geoModellogit_predictions))
+confusion_matrix = confusion_matrix(y_testGeo, sklearn_geoModellogit_predictions)
+print(confusion_matrix)
+print(classification_report(y_testGeo,sklearn_geoModellogit_predictions))
+
+
+#%%
+# K Nearest Neighbors (KNN)
+import matplotlib.pyplot as plt 
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+
+# choose k between 1 to 31
+k_range = range(1, 31)
+k_scores = []
+for k in k_range:
+    knn_split = KNeighborsClassifier(n_neighbors=k)
+    knn_split.fit(x_trainGeo,y_trainGeo)
+    scores = knn_split.score(x_testGeo,y_testGeo)
+    k_scores.append(scores.mean())
+# plot to see clearly
+plt.plot(k_range, k_scores)
+plt.xlabel('Value of K for KNN_split')
+plt.ylabel('Accuracy score')
+plt.show()
+
+# the comfortable KNN choice (n = 5) 
+knn_split_5 = KNeighborsClassifier(n_neighbors=5) 
+# instantiate with n value given
+knn_split_5.fit(x_trainGeo,y_trainGeo)
+# knn_split.score(x_testGeo,y_testGeo)
+knn_Geopredictions = knn_split_5.predict(x_testGeo)
+print(knn_Geopredictions)
+print(knn_split_5.predict_proba(x_trainGeo[:8]))
+print(knn_split_5.predict_proba(x_testGeo[:8]))
+
+# Evaluate test-set accuracy
+print("KNN (k value = 5)")
+print()
+print(f'KNN train score:  {knn_split_5.score(x_trainGeo,y_trainGeo)}')
+print(f'KNN test score:  {knn_split_5.score(x_testGeo,y_testGeo)}')
+print(accuracy_score(y_testGeo, knn_Geopredictions))
+from sklearn.metrics import confusion_matrix
+confusion_matrix = confusion_matrix(y_testGeo, knn_Geopredictions)
+print(confusion_matrix)
+print(classification_report(y_testGeo, knn_Geopredictions))
+print() 
+
+#%%
+#Decision Trees
+from sklearn.tree import DecisionTreeClassifier
+
+dtreeGeo = DecisionTreeClassifier(criterion='entropy', max_depth=5, random_state=1)
+# Fit dt to the training set
+dtreeGeo.fit(x_trainGeo,y_trainGeo)
+# Predict test set labels
+dtreeGeoPred = dtreeGeo.predict(x_testGeo)
+print(dtreeGeoPred)
+print(dtreeGeo.predict_proba(x_trainGeo[:8]))
+print(dtreeGeo.predict_proba(x_testGeo[:8]))
+
+# Evaluate test-set accuracy
+print("DecisionTreeClassifier: entropy(max_depth = 5)")
+print()
+print(f'dtree train score:  {dtreeGeo.score(x_trainGeo,y_trainGeo)}')
+print(f'dtree test score:  {dtreeGeo.score(x_testGeo,y_testGeo)}')
+print(accuracy_score(y_testGeo, dtreeGeoPred))
+from sklearn.metrics import confusion_matrix
+print(confusion_matrix(y_testGeo, dtreeGeoPred))
+print(classification_report(y_testGeo, dtreeGeoPred))
+print()
+
+
+#%%
+#SVC() for Geography model
+from sklearn.svm import SVC, LinearSVC
+from sklearn.metrics import confusion_matrix
+
+# SVC 
+svcGeoAuto = SVC(gamma='auto', probability=True)
+svcGeoAuto.fit(x_trainGeo,y_trainGeo)
+
+#Predictions
+svcGeoAuto_pred = svcGeoAuto.predict(x_testGeo)
+print(svcGeoAuto_pred)
+print(svcGeoAuto.predict_proba(x_trainGeo[:8]))
+print(svcGeoAuto.predict_proba(x_testGeo[:8]))
+
+# Evaluate test-set accuracy
+print("SVC (adjust gamma: auto)")
+print()
+print(f'svc train score:  {svcGeoAuto.score(x_trainGeo,y_trainGeo)}')
+print(f'svc test score:  {svcGeoAuto.score(x_testGeo,y_testGeo)}')
+print(accuracy_score(y_testGeo, svcGeoAuto_pred))
+print(confusion_matrix(y_testGeo, svcGeoAuto_pred))
+print(classification_report(y_testGeo, svcGeoAuto_pred))
+print()
+
+
+#%%
+#Linear Kernel SVC
+from sklearn.svm import SVC, LinearSVC
+from sklearn.metrics import accuracy_score
+from sklearn.svm import SVC, LinearSVC
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import classification_report
+from sklearn.svm import SVC, LinearSVC
+from sklearn import svm
+
+
+svcGeo_linearsvc = svm.LinearSVC()
+svcGeo_linearsvc.fit(x_trainGeo,y_trainGeo)
+y_pred = svcGeo_linearsvc.predict(x_testGeo)
+
+
+#Predictions
+y_pred_linearsvc = svcGeo_linearsvc.predict(x_testGeo)
+print(y_pred)
+print(svcGeo_linearsvc._predict_proba_lr(x_trainGeo[:8]))
+print(svcGeo_linearsvc._predict_proba_lr(x_testGeo[:8]))
+
+# Evaluate test-set accuracy
+print("SVC LinearSVC()")
+print()
+print(f'svc train score:  {svcGeo_linearsvc.score(x_trainGeo,y_trainGeo)}')
+print(f'svc test score:  {svcGeo_linearsvc.score(x_testGeo,y_testGeo)}')
+print(accuracy_score(y_testGeo, y_pred_linearsvc))
+
+from sklearn.metrics import confusion_matrix
+print(confusion_matrix(y_testGeo, y_pred_linearsvc))
+print(classification_report(y_testGeo, y_pred_linearsvc))
+print()
+
+
+
+#%%
+#Run Time Calculations for Geo Models
+from sklearn.model_selection import cross_val_score
+import timeit
+
+%timeit -r 1 print(f'\n cv_model CV accuracy score: { cross_val_score(cv_model, x_trainGeo, y_trainGeo, cv = 10 , scoring = "accuracy" ) } \n ' ) 
+# 13.1 s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
+
+
+%timeit -r 1 print(f'\n linear SVC CV accuracy score: { cross_val_score(svcGeo_linearsvc, x_trainGeo, y_trainGeo, cv = 10 , scoring = "accuracy" ) } \n ' ) 
+# 22.4 s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
+
+%timeit -r 1 print(f'\n logistic CV accuracy score: { cross_val_score(geoLogit, x_trainGeo, y_trainGeo, cv = 10 , scoring = "accuracy" ) } \n ' ) 
+# 1.12 s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
+
+%timeit -r 1 print(f'\n KNN CV accuracy score: { cross_val_score(knn_split_5, x_trainGeo, y_trainGeo, cv = 10 , scoring = "accuracy" ) } \n ' ) 
+# 1.66 s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
+
+%timeit -r 1 print(f'\n dtree CV accuracy score: { cross_val_score(dtreeGeo, x_trainGeo, y_trainGeo, cv = 10 , scoring = "accuracy" ) } \n ' ) 
+# 514 ms ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
+
+
+
+
+# %%
+# Receiver Operator Characteristics (ROC)
+# Area Under the Curve (AUC)
+from sklearn.metrics import roc_auc_score, roc_curve
+
+ns_probs = [0 for _ in range(len(y_testGeo))]
+lr_probs = geoLogit.predict_proba(x_testGeo)
+lr_probs = lr_probs[:, 1]
+ns_auc = roc_auc_score(y_testGeo, ns_probs)
+lr_auc = roc_auc_score(y_testGeo, lr_probs)
+print('No Skill: ROC AUC=%.3f' % (ns_auc))
+print('Logistic: ROC AUC=%.3f' % (lr_auc))
+ns_fpr, ns_tpr, _ = roc_curve(y_testGeo, ns_probs)
+lr_fpr, lr_tpr, _ = roc_curve(y_testGeo, lr_probs)
+plt.plot(ns_fpr, ns_tpr, linestyle='--', label='No Skill')
+plt.plot(lr_fpr, lr_tpr, marker='.', label='Logistic')
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.legend()
+plt.show()
+
+#Dtree
+ns_probs = [0 for _ in range(len(y_testGeo))]
+lr_probs = dtreeGeo.predict_proba(x_testGeo)
+lr_probs = lr_probs[:, 1]
+ns_auc = roc_auc_score(y_testGeo, ns_probs)
+lr_auc = roc_auc_score(y_testGeo, lr_probs)
+print('No Skill: ROC AUC=%.3f' % (ns_auc))
+print('Logistic: ROC AUC=%.3f' % (lr_auc))
+ns_fpr, ns_tpr, _ = roc_curve(y_testGeo, ns_probs)
+lr_fpr, lr_tpr, _ = roc_curve(y_testGeo, lr_probs)
+plt.plot(ns_fpr, ns_tpr, linestyle='--', label='No Skill')
+plt.plot(lr_fpr, lr_tpr, marker='.', label='dtreeGeo')
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.legend()
+plt.show()
+
+
+
+#%%
+from mlxtend.plotting import plot_decision_regions
+import matplotlib.pyplot as plt
+# Plotting decision regions -- Still trying to get this to work
+plot_decision_regions(x_testGeo.values, y_testGeo.values, clf=geoLogit, legend=3, filler_feature_values={2:1} , filler_feature_ranges={2: 3} )
+# filler_feature_values is used when you have more than 2 predictors, then 
+# you need to specify the ones not shown in the 2-D plot. For us, 
+# the rank is at poition 2, and the value can be 1, 2, 3, or 4.
+# also need to specify the filler_feature_ranges for +/-, otherwise only data points with that feature value will be shown.
+
+
+# Adding axes annotations
+plt.xlabel(x_testGeo.columns[0])
+plt.ylabel(x_testGeo.columns[1])
+plt.title(geoLogit.__class__.__name__)
+plt.show()
+
+
+# And the decision tree result
+plot_decision_regions(x_testGeo.values, y_testGeo.values, clf=dtreeGeo, legend=3, filler_feature_values={2:1} , filler_feature_ranges={2: 3} )
+plt.xlabel(x_testGeo.columns[0])
+plt.ylabel(x_testGeo.columns[1])
+plt.title(dtreeGeo.__class__.__name__)
+plt.show()
+
+
+
+#%%
 
