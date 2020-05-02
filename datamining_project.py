@@ -142,7 +142,7 @@ print(table)
 import seaborn as sns
 kde=sns.kdeplot(cleaned_df.age, cleaned_df.rw, cmap="Blues", shade=True)
 kde.set_xlabel('Age',fontsize=10)
-kde.set_ylabel('Real Wage (Thousands of Dollars)',fontsize=10)
+kde.set_ylabel('Real Wage ($ per hour)',fontsize=10)
 kde.set_title('Age and Real Wage',fontsize=15)
 # %%
 #gender by education level
@@ -155,6 +155,31 @@ labs[1].set_text("Female")
 countplot.set_xlabel('Education Level',fontsize=10)
 countplot.set_ylabel('Count',fontsize=10)
 countplot.set_title('Education Level by Gender',fontsize=15)
+#%%
+#gender and industry
+plt.figure(figsize=(12,8))
+count=countplot=sns.countplot(x='ind_m03', hue='female', data=cleaned_df,palette='pastel')
+count.set_xticklabels(count.get_xticklabels(), rotation=90)
+leg = countplot.get_legend()
+leg.set_title("Gender")
+labs = leg.texts
+labs[0].set_text("Male")
+labs[1].set_text("Female")
+count.set_xlabel('Industry',fontsize=15)
+count.set_ylabel('Count',fontsize=15)
+count.set_title('Industry by Gender',fontsize=20)
+#%%
+#gender and income
+df_male = cleaned_df[cleaned_df.female == 0]
+df_female = cleaned_df[cleaned_df.female == 1]
+
+plt.ylabel('Density')
+ax1=sns.distplot(df_male['rw'],  kde=False, label='Male',color='hotpink')
+ax1=sns.distplot(df_female['rw'],  kde=False,label='Female')
+plt.legend(prop={'size': 12})
+plt.title('Wage by Gender')
+plt.xlabel('Wage ($)')
+plt.ylabel('Density')
 
 # %%
 #education level by race
@@ -355,7 +380,7 @@ print(f"The dtree f1 score is {f1_score(y_test_gender, dtree_pred)}")
 # %%
 # Build the model
 # Mutiple linear regression
->>>>>>> 2ea95ddcc0443953fe22924ca8078320cf05a741
+
 
 from statsmodels.formula.api import ols
 modelwage1Fit = ols(formula='rw ~ age + C(female) + hourslw + C(forborn) + C(married) + C(educ) + C(wbho) + C(rural)', data=cleaned_df).fit()
