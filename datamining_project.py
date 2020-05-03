@@ -1160,9 +1160,7 @@ print(f"The dtree_empl  f1 score is {f1_score(y_testempl, dtree_predempl, averag
 # 191 ms ± 0 ns per loop (mean ± std. dev. of 1 run, 10 loops each
 
 
-
-# %%
-
+#%%
 # Data Mining Project - Ignatios Draklellis
 
 # age - age (Numeric)
@@ -1195,9 +1193,10 @@ print(f"The dtree_empl  f1 score is {f1_score(y_testempl, dtree_predempl, averag
 
 
 #%%
-# Prepare Geography Data
+# Step 1 - plot the boxplot to investigate the outlier in "age", "rw", and "houtslw" (Numuric)
 import matplotlib.pyplot as plt 
 import numpy as np
+boxplot = df.boxplot(column=['age', 'rw', 'rural', 'forborn', 'nilf', 'hourslw', 'multjobn'])
 dfGeo = df[['age', 'rw', 'rural', 'forborn', 'nilf', 'hourslw', 'multjobn', 'educ', 'wbho']]
 
 #Recode
@@ -1215,10 +1214,42 @@ dfGeo.educ[dfGeo.educ == 'Advanced'] = 4
 
 dfGeo = dfGeo.dropna()
 
-dfGeo.tail(5)
+dfGeo.tail(35)
 
 #%%
-#Data Visuals and Graphing for Geography
+#Step 2 - remove outlier by calculated the interquartile range (IQR). 
+# IQR is calculated as the difference between the 75th and 25th percentiles or IQR = Q3 − Q1. 
+# So, the numbers that are out of IQR are outlier. 
+#Q1 = dfGeo.quantile(0.25)
+#Q3 = dfGeo.quantile(0.75)
+#IQR = Q3 - Q1
+#print(IQR)
+
+#dfGeo = dfGeo[~((dfGeo < (Q1 - 1.5 * IQR)) |(dfGeo > (Q3 + 1.5 * IQR))).any(axis=1)]
+#print(dfGeo.shape)
+
+#%%
+# Step 3
+# merge the data (3 numuric) without outlier to original dataset by index of both the dataframes.
+#dfGeo = df.merge(dfGeo, left_index=True, right_index=True).dropna()
+
+# reset index for new dataset
+#dfGeo = dfGeo.reset_index()
+
+#rename age_x, rw_x, hourlw_x to age, rw, and hourlw, and drop age_y, rw_y, and hourlw_y
+#dfGeo = dfGeo.rename(columns={"age_x": "age", "rw_x": "rw", "hourslw_x": "hourslw"})
+#dfGeo = dfGeo.drop(columns=['age_y', 'rw_y', 'hourslw_y','index'])
+
+#"rural_x":"rural", "forborn_x":"forborn", "nilf_x":"nilf", "multjobn_x":"multjobn", "educ_x":"educ"
+#
+
+#Cleaned_data
+#dfChkBasics(dfGeo, True)
+#print(dfGeo.dtypes)
+
+
+#%%
+#Data Visuals and Graphing
 
 #Descriptive Statistics
 geoVars=dfGeo[['age','hourslw','rw']]
@@ -1234,6 +1265,18 @@ dfGeo.forborn[dfGeo.forborn == 1] = 'Native'
 
 dfGeo = dfGeo.rename(columns={"rural": "Geography", "forborn": "Foreign Born"})
 
+#Histogram of income by Geography
+geo_groups = dfGeo.groupby('Geography').groups
+urb_ind = geo_groups['Urban']
+rur_ind = geo_groups['Rural']
+plt.hist([dfGeo.loc[urb_ind,'rw'],dfGeo.loc[rur_ind,'rw']], 20, density = 1, histtype = 'bar', label = dfGeo['Geography'].unique())
+plt.xlabel('Wage ($)')
+plt.ylabel('Frequency')
+plt.title('Income Distributions by Geography')
+plt.legend()
+plt.show()
+
+
 #Violin Plots
 import seaborn as sns
 sns.catplot(x="Geography", y="rw", hue="Foreign Born",
@@ -1241,6 +1284,13 @@ sns.catplot(x="Geography", y="rw", hue="Foreign Born",
 plt.ylabel("Real Wages (2019 US Dollars)")
 plt.title("Foreign and Native Born Wages Based on Geography")
 plt.show()
+
+sns.catplot(x="Geography", y="rw",
+            kind="violin", split=False, data=dfGeo)
+plt.ylabel("Real Wages (2019 US Dollars)")
+plt.title("Foreign and Native Born Wages Based on Geography")
+plt.show()
+
 
 # Grouped Bar Plots
 sns.catplot(x="educ", y="rw", hue="Geography", data=dfGeo, height=6, kind="bar", palette="muted")
@@ -1576,5 +1626,8 @@ plt.ylabel('True Positive Rate')
 plt.legend()
 plt.show()
 
-#%%
 
+
+
+
+#%%
