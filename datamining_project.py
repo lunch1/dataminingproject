@@ -56,7 +56,7 @@ import pandas as pd
 # You can change it with chdir()
 dirpath = os.getcwd() # print("current directory is : " + dirpath)
 filepath = os.path.join( dirpath ,'cepr_org_2019.csv')
-cols_list=['age','female','wbho','forborn','citizen','vet','married', 'marstat','ownchild','empl','unem','nilf','uncov','state','educ','centcity','suburb','rural', 'hourslw','rw', 'multjobn']
+cols_list=['age','female','wbho','forborn','citizen','vet','married', 'marstat','ownchild','empl','unem','nilf','uncov','state','educ','centcity','suburb','rural', 'hourslw','rw', 'multjobn', "ind_m03"]
 df= pd.read_csv(filepath, usecols=cols_list)
 dfChkBasics(df, True)
 print(df.dtypes)
@@ -290,15 +290,12 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.linear_model import LogisticRegressionCV
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
-<<<<<<< HEAD
 from sklearn.metrics import recall_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
-=======
 
 # Data dict
->>>>>>> a8c350c5ea9edb7666dbf8ec93dc6092e1339f0e
 # age - age (Numeric)
 # female - sex (0 = male, 1 = female)
 # wbho - Race (white, Hispanic, Black, Other)
@@ -320,12 +317,9 @@ from sklearn.metrics import f1_score
 # hourslw - Hours last week, all jobs (Numeric)
 # rw - Real hourly wage, 2019$ (Numeric)
 # multjobn - Number of jobs (Numeric)
-<<<<<<< HEAD
 # wbho
 # White = 0, Hispanic = 1, black = 2, other = 3
-=======
 
->>>>>>> a8c350c5ea9edb7666dbf8ec93dc6092e1339f0e
 def cleanDfwbho(row):
   thewbho = row["wbho"]
   return (0 if (thewbho=="White") else 1 if (thewbho=="Hispanic") else 2 if (thewbho=="Black") else 3 if (thewbho=="Other") else np.nan)
@@ -341,7 +335,6 @@ predictions_gender = logmodel_gender.predict(X_test_gender)
 #results
 confusion_matrix = confusion_matrix(y_test_gender, predictions_gender)
 print(confusion_matrix)
-<<<<<<< HEAD
 print(classification_report(y_test_gender,predictions_gender))
 logmodel_gender.score(X_test_gender, y_test_gender)
 print(f"The logit accuracy score is {accuracy_score(y_test_gender, predictions_gender)}")
@@ -352,18 +345,14 @@ print(f"The logit f1 score is {f1_score(y_test_gender, predictions_gender)}")
 #timing logistic regression
 from sklearn.model_selection import cross_val_score
 %timeit -r 1 print(f'\n logit accuracy score: { cross_val_score(logmodel_gender, X_train_gender, y_train_gender, cv = 10 , scoring = "accuracy" ) } \n ' )
-=======
-print(classification_report(y_test,predictions))
-logmodel.score(X_test, y_test)
 
->>>>>>> a8c350c5ea9edb7666dbf8ec93dc6092e1339f0e
+
 #%%
 #logistic regression with cv to predict gender
 cv_model_gender=LogisticRegressionCV()
 cv_model_gender.fit(X_train_gender,y_train_gender)
 cv_predictions_gender = cv_model_gender.predict(X_test_gender)
 #results
-<<<<<<< HEAD
 print(classification_report(y_test_gender,cv_predictions_gender))
 cv_model_gender.score(X_test_gender, y_test_gender)
 print(f"The logit cv accuracy score is {accuracy_score(y_test_gender, cv_predictions_gender)}")
@@ -447,15 +436,10 @@ print(f"The dtree f1 score is {f1_score(y_test_gender, dtree_pred)}")
 #%%
 #timing dtree
 %timeit -r 1 print(f'\n dtree accuracy score: { cross_val_score(dtree_gini_gender, X_train_gender, y_train_gender, cv = 10 , scoring = "accuracy" ) } \n ' )
-# %%
-# Build the model
-# Mutiple linear regression
 
-=======
-print(classification_report(y_test,cv_predictions))
-cv_model.score(X_test, y_test)
 
 #%%
+# moving onto wage 
 #data exploration and graphing
 # wage and other variables
 
@@ -619,7 +603,6 @@ wagechart_ch=sns.barplot(x='Level',y='Count',data=wagechart,palette='Greens')
 # %%
 # Build the model
 # Mutiple linear regression
->>>>>>> a8c350c5ea9edb7666dbf8ec93dc6092e1339f0e
 
 from statsmodels.formula.api import ols
 modelwage1Fit = ols(formula='rw ~ age + C(female) + hourslw + C(forborn) + C(married) + C(educ) + C(wbho) + C(rural)', data=cleaned_df).fit()
