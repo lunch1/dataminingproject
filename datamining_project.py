@@ -1443,34 +1443,5 @@ plt.ylabel('True Positive Rate')
 plt.legend()
 plt.show()
 
-
-
-#%%
-from mlxtend.plotting import plot_decision_regions
-import matplotlib.pyplot as plt
-# Plotting decision regions -- Still trying to get this to work
-plot_decision_regions(x_testGeo.values, y_testGeo.values, clf=geoLogit, legend=3, filler_feature_values={2:1} , filler_feature_ranges={2: 3} )
-# filler_feature_values is used when you have more than 2 predictors, then 
-# you need to specify the ones not shown in the 2-D plot. For us, 
-# the rank is at poition 2, and the value can be 1, 2, 3, or 4.
-# also need to specify the filler_feature_ranges for +/-, otherwise only data points with that feature value will be shown.
-
-
-# Adding axes annotations
-plt.xlabel(x_testGeo.columns[0])
-plt.ylabel(x_testGeo.columns[1])
-plt.title(geoLogit.__class__.__name__)
-plt.show()
-
-
-# And the decision tree result
-plot_decision_regions(x_testGeo.values, y_testGeo.values, clf=dtreeGeo, legend=3, filler_feature_values={2:1} , filler_feature_ranges={2: 3} )
-plt.xlabel(x_testGeo.columns[0])
-plt.ylabel(x_testGeo.columns[1])
-plt.title(dtreeGeo.__class__.__name__)
-plt.show()
-
-
-
 #%%
 
