@@ -928,21 +928,25 @@ from sklearn.model_selection import cross_val_score
 #1.44 s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
 
 #%%
-from sklearn.metrics import roc_auc_score
 from sklearn.metrics import roc_curve
-logit_roc_auc = roc_auc_score(y_testempl, predictionsempl)
-fpr, tpr, thresholds = roc_curve(y_testempl, predictionsempl)
-plt.figure()
-plt.plot(fpr, tpr, label='Logistic Regression (area = %0.2f)' % logit_roc_auc)
-plt.plot([0, 1], [0, 1],'r--')
-plt.xlim([0.0, 1.0])
-plt.ylim([0.0, 1.05])
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('Receiver operating characteristic')
-plt.legend(loc="lower right")
-plt.savefig('Log_ROC')
-plt.show()
+from sklearn.metrics import roc_auc_score
+from matplotlib import pyplot
+lr_employ = lr_empl.predict_proba(X_testempl)
+lr_employ = lr_employ[:, 1]
+ns_employ = [0 for _ in range(len(y_testempl))]
+ns_auc = roc_auc_score(y_testempl, ns_employ)
+lr_auc = roc_auc_score(y_testempl, lr_employ)
+print('No Skill: ROC AUC=%.3f' % (ns_auc))
+print('Logistic: ROC AUC=%.3f' % (lr_auc))
+ns_fpr, ns_tpr, _ = roc_curve(y_testempl, ns_employ)
+lr_fpr, lr_tpr, _ = roc_curve(y_testempl, lr_employ)
+pyplot.plot(ns_fpr, ns_tpr, linestyle='--', label='No Skill')
+pyplot.plot(lr_fpr, lr_tpr, marker='.', label='Logistic',color='red')
+pyplot.xlabel('False Positive Rate',fontsize=12)
+pyplot.ylabel('True Positive Rate',fontsize=12)
+pyplot.title('Logistic Regression',fontsize=15)
+pyplot.legend()
+pyplot.show()
 
 #%%
 # logistic regression with CV model for empl with the train set, and score it with the test set.
@@ -1014,16 +1018,6 @@ dtree.fit(X_trainempl,y_trainempl)
 # Predict test set labels
 dtree_predempl = dtree.predict(X_testempl)
 # Evaluate test-set accuracy
-print(f'Decision tree train score:  {dtree.score(X_train,y_train)}')
-print(f'Decision tree score:  {dtree.score(X_test,y_test)}')
-print(confusion_matrix(y_test, dtree.predict(X_test)))
-print(classification_report(y_test, dtree.predict(X_test)))
-print(f'Decision tree train score:  {dtree.score(X_trainempl,y_trainempl)}')
-print(f'Decision tree score:  {dtree.score(X_testempl,y_testempl)}')
-print(confusion_matrix(y_testempl, dtree.predict(X_testempl)))
-print(classification_report(y_testempl, dtree.predict(X_testempl)))
-print(classification_report(y_testempl, dtree_predempl))
-print()
 print(f"The dtree_empl accuracy score is {accuracy_score(y_testempl, dtree_predempl)}")
 print(f"The dtree_empl  precision score is {precision_score(y_testempl, dtree_predempl, average='weighted')}")
 print(f"The dtree_empl  recall score is {recall_score(y_testempl, dtree_predempl, average='weighted')}")
