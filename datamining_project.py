@@ -200,12 +200,11 @@ print(table)
 import seaborn as sns
 kde=sns.kdeplot(cleaned_df.age, cleaned_df.rw, cmap="Blues", shade=True)
 kde.set_xlabel('Age',fontsize=10)
-kde.set_ylabel('Real Wage',fontsize=10)
+kde.set_ylabel('Real Wage ($ per hour)',fontsize=10)
 kde.set_title('Age and Real Wage',fontsize=15)
-
 # %%
 #gender by education level
-countplot=sns.countplot(x='educ', hue='female', order=['HS','LTHS','Some college','College','Advanced'],data=cleaned_df,palette=['skyblue','lightsalmon'])
+countplot=sns.countplot(x='educ', hue='female', order=['LTHS','HS','Some college','College','Advanced'],data=cleaned_df,palette=['skyblue','lightsalmon'])
 leg = countplot.get_legend()
 leg.set_title("Gender")
 labs = leg.texts
@@ -214,29 +213,56 @@ labs[1].set_text("Female")
 countplot.set_xlabel('Education Level',fontsize=10)
 countplot.set_ylabel('Count',fontsize=10)
 countplot.set_title('Education Level by Gender',fontsize=15)
+#%%
+#gender and industry
+plt.figure(figsize=(12,8))
+count=countplot=sns.countplot(x='ind_m03', hue='female', data=cleaned_df,palette='pastel')
+count.set_xticklabels(count.get_xticklabels(), rotation=90)
+leg = countplot.get_legend()
+leg.set_title("Gender")
+labs = leg.texts
+labs[0].set_text("Male")
+labs[1].set_text("Female")
+count.set_xlabel('Industry',fontsize=15)
+count.set_ylabel('Count',fontsize=15)
+count.set_title('Industry by Gender',fontsize=20)
+#%%
+#gender and income
+df_male = cleaned_df[cleaned_df.female == 0]
+df_female = cleaned_df[cleaned_df.female == 1]
+
+plt.ylabel('Density')
+ax1=sns.distplot(df_male['rw'],  kde=False, label='Male',color='hotpink')
+ax1=sns.distplot(df_female['rw'],  kde=False,label='Female')
+plt.legend(prop={'size': 12})
+plt.title('Wage by Gender')
+plt.xlabel('Wage ($)')
+plt.ylabel('Density')
 
 # %%
 #education level by race
-fig, axes = plt.subplots(nrows=2, ncols=2,figsize=(12, 6))
-plt.suptitle('Education Level by Race',fontsize=20)
-plt.subplots_adjust(hspace=.4)
 white = cleaned_df[cleaned_df['wbho']=='White']
 hispanic = cleaned_df[cleaned_df['wbho']=='Hispanic']
 black = cleaned_df[cleaned_df['wbho']=='Black']
 other = cleaned_df[cleaned_df['wbho']=='Other']
 
-ax = sns.countplot(x='educ',order=['HS','LTHS','Some college','College','Advanced'],data=white,ax = axes[0,0],palette='BuGn_r')
+fig, axes = plt.subplots(nrows=2, ncols=2,figsize=(12, 6))
+plt.suptitle('Education Level by Race',fontsize=20)
+plt.subplots_adjust(hspace=.4)
+
+ax = sns.countplot(x='educ',order=['LTHS','HS','Some college','College','Advanced'],data=white,ax = axes[0,0],palette='BuGn_r')
 ax.set_xlabel('')
 ax.set_title('White')
-ax = sns.countplot(x='educ',order=['HS','LTHS','Some college','College','Advanced'],data=hispanic,ax = axes[0,1],palette='BuGn_r')
+ax = sns.countplot(x='educ',order=['LTHS','HS','Some college','College','Advanced'],data=hispanic,ax = axes[0,1],palette='BuGn_r')
 ax.set_xlabel('')
 ax.set_title('Hispanic')
-ax = sns.countplot(x='educ',order=['HS','LTHS','Some college','College','Advanced'],data=black,ax = axes[1,0],palette='BuGn_r')
+ax = sns.countplot(x='educ',order=['LTHS','HS','Some college','College','Advanced'],data=black,ax = axes[1,0],palette='BuGn_r')
 ax.set_xlabel('')
 ax.set_title('Black')
-ax = sns.countplot(x='educ',order=['HS','LTHS','Some college','College','Advanced'],data=other,ax = axes[1,1],palette='BuGn_r')
+ax = sns.countplot(x='educ',order=['LTHS','HS','Some college','College','Advanced'],data=other,ax = axes[1,1],palette='BuGn_r')
 ax.set_xlabel('')
 ax.set_title('Other')
+plt.show()
 #%%
 #types of region
 cleaned_df.centcity.sum()
@@ -245,17 +271,34 @@ cleaned_df.rural.sum()
 data = [['Central City', 2297], ['Suburban', 4385], ['Rural', 1893]]
 regions = pd.DataFrame(data, columns = ['Type of Region', 'Count']) 
 regions_ch=sns.barplot(x='Type of Region',y='Count',data=regions,palette='Greens')
+regions_ch.set_title('Types of Regions')
 
 
 # %%
+#model selection for the best model to predict gender based on other variables
+#running multiple linear regression to select relevant variables
+from statsmodels.formula.api import ols
+modelgender1Fit = ols(formula='female ~ rw + age + C(female) + hourslw + C(forborn) + C(married) + C(educ) + C(wbho) + C(rural)', data=cleaned_df).fit()
+
+print( type(modelgender1Fit) )
+print( modelgender1Fit.summary() )
+#so the relevant variables are wage, age, hours last week and gender
+#%%
 #logistic regression to predict someone's gender based on their responses
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.linear_model import LogisticRegressionCV
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
+<<<<<<< HEAD
+from sklearn.metrics import recall_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import f1_score
+=======
 
 # Data dict
+>>>>>>> a8c350c5ea9edb7666dbf8ec93dc6092e1339f0e
 # age - age (Numeric)
 # female - sex (0 = male, 1 = female)
 # wbho - Race (white, Hispanic, Black, Other)
@@ -277,32 +320,138 @@ from sklearn.metrics import confusion_matrix
 # hourslw - Hours last week, all jobs (Numeric)
 # rw - Real hourly wage, 2019$ (Numeric)
 # multjobn - Number of jobs (Numeric)
+<<<<<<< HEAD
+# wbho
+# White = 0, Hispanic = 1, black = 2, other = 3
+=======
 
+>>>>>>> a8c350c5ea9edb7666dbf8ec93dc6092e1339f0e
 def cleanDfwbho(row):
   thewbho = row["wbho"]
   return (0 if (thewbho=="White") else 1 if (thewbho=="Hispanic") else 2 if (thewbho=="Black") else 3 if (thewbho=="Other") else np.nan)
 # end function cleanDfwbho
 cleaned_df['wbho'] = df.apply(cleanDfwbho, axis=1)
-
 #choosing variables
-logit_df=cleaned_df[['uncov','age','female','wbho','citizen','vet','multjobn','rw']]
+logit_df=cleaned_df[['age','female','rw','hourslw']]
 #making a 4:1 train/test split
-X_train, X_test, y_train, y_test = train_test_split(logit_df.drop('female',axis=1), logit_df['female'], test_size=0.20, random_state=101)
-logmodel = LogisticRegression()
-logmodel.fit(X_train,y_train)
-predictions = logmodel.predict(X_test)
+X_train_gender, X_test_gender, y_train_gender, y_test_gender = train_test_split(logit_df.drop('female',axis=1), logit_df['female'], test_size=0.20, random_state=101)
+logmodel_gender = LogisticRegression()
+logmodel_gender.fit(X_train_gender,y_train_gender)
+predictions_gender = logmodel_gender.predict(X_test_gender)
 #results
-confusion_matrix = confusion_matrix(y_test, predictions)
+confusion_matrix = confusion_matrix(y_test_gender, predictions_gender)
 print(confusion_matrix)
+<<<<<<< HEAD
+print(classification_report(y_test_gender,predictions_gender))
+logmodel_gender.score(X_test_gender, y_test_gender)
+print(f"The logit accuracy score is {accuracy_score(y_test_gender, predictions_gender)}")
+print(f"The logit precision score is {precision_score(y_test_gender, predictions_gender)}")
+print(f"The logit recall score is {recall_score(y_test_gender, predictions_gender)}")
+print(f"The logit f1 score is {f1_score(y_test_gender, predictions_gender)}")
+#%%
+#timing logistic regression
+from sklearn.model_selection import cross_val_score
+%timeit -r 1 print(f'\n logit accuracy score: { cross_val_score(logmodel_gender, X_train_gender, y_train_gender, cv = 10 , scoring = "accuracy" ) } \n ' )
+=======
 print(classification_report(y_test,predictions))
 logmodel.score(X_test, y_test)
 
+>>>>>>> a8c350c5ea9edb7666dbf8ec93dc6092e1339f0e
 #%%
-#trying using cv in addition to linear regression
-cv_model=LogisticRegressionCV()
-cv_model.fit(X_train,y_train)
-cv_predictions = cv_model.predict(X_test)
+#logistic regression with cv to predict gender
+cv_model_gender=LogisticRegressionCV()
+cv_model_gender.fit(X_train_gender,y_train_gender)
+cv_predictions_gender = cv_model_gender.predict(X_test_gender)
 #results
+<<<<<<< HEAD
+print(classification_report(y_test_gender,cv_predictions_gender))
+cv_model_gender.score(X_test_gender, y_test_gender)
+print(f"The logit cv accuracy score is {accuracy_score(y_test_gender, cv_predictions_gender)}")
+print(f"The logit cv precision score is {precision_score(y_test_gender, cv_predictions_gender)}")
+print(f"The logit cv recall score is {recall_score(y_test_gender, cv_predictions_gender)}")
+print(f"The logit cv f1 score is {f1_score(y_test_gender, cv_predictions_gender)}")
+#%%
+from sklearn.metrics import roc_curve
+from sklearn.metrics import roc_auc_score
+from matplotlib import pyplot
+lr_probs = cv_model_gender.predict_proba(X_test_gender)
+lr_probs = lr_probs[:, 1]
+ns_probs = [0 for _ in range(len(y_test_gender))]
+ns_auc = roc_auc_score(y_test_gender, ns_probs)
+lr_auc = roc_auc_score(y_test_gender, lr_probs)
+print('No Skill: ROC AUC=%.3f' % (ns_auc))
+print('Logistic: ROC AUC=%.3f' % (lr_auc))
+ns_fpr, ns_tpr, _ = roc_curve(y_test_gender, ns_probs)
+lr_fpr, lr_tpr, _ = roc_curve(y_test_gender, lr_probs)
+pyplot.plot(ns_fpr, ns_tpr, linestyle='--', label='No Skill')
+pyplot.plot(lr_fpr, lr_tpr, marker='.', label='Logistic',color='mediumseagreen')
+pyplot.xlabel('False Positive Rate',fontsize=12)
+pyplot.ylabel('True Positive Rate',fontsize=12)
+pyplot.title('Logistic Regression with CV',fontsize=15)
+pyplot.legend()
+pyplot.show()
+#%%
+#timing cv logistic regression
+%timeit -r 1 print(f'\n logit CV accuracy score: { cross_val_score(cv_model_gender, X_train_gender, y_train_gender, cv = 10 , scoring = "accuracy" ) } \n ' )
+#%%
+#knn model for gender
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import GridSearchCV
+from sklearn import metrics
+from sklearn.metrics import precision_recall_fscore_support
+knn_gender = KNeighborsClassifier( )
+#this will run a range of k values and return the best parameters
+k_range = list(range(1,10))
+weights_options = ['uniform','distance']
+k_grid = dict(n_neighbors=k_range, weights = weights_options)
+grid = GridSearchCV(knn_gender, k_grid, cv=10, scoring = 'precision')
+grid.fit(X_train_gender, y_train_gender)
+grid.cv_results_
+print ("Best Score: ",str(grid.best_score_))
+print ("Best Parameters: ",str(grid.best_params_))
+print ("Best Estimators: ",str(grid.best_estimator_))
+#so the best value of k is 6
+y_pred_gender = grid.predict(X_test_gender)
+#%%
+print(f"The knn accuracy score is {accuracy_score(y_test_gender, y_pred_gender)}")
+print(f"The knn precision score is {precision_score(y_test_gender, y_pred_gender)}")
+print(f"The knn recall score is {recall_score(y_test_gender, y_pred_gender)}")
+print(f"The knn f1 score is {f1_score(y_test_gender, y_pred_gender)}")
+#%%
+#timing knn
+%timeit -r 1 print(f'\n knn accuracy score: { cross_val_score(knn_gender, X_train_gender, y_train_gender, cv = 10 , scoring = "accuracy" ) } \n ' )
+#%%
+#SVC model for gender
+from sklearn.svm import SVC, LinearSVC
+svc_gender = SVC()
+svc_gender.fit(X_train_gender,y_train_gender)
+svc_predict_gender = svc_gender.predict(X_test_gender)
+#%%
+print(f"The svc accuracy score is {accuracy_score(y_test_gender, svc_predict_gender)}")
+print(f"The svc precision score is {precision_score(y_test_gender, svc_predict_gender)}")
+print(f"The svc recall score is {recall_score(y_test_gender, svc_predict_gender)}")
+print(f"The svc f1 score is {f1_score(y_test_gender, svc_predict_gender)}")
+#%%
+#timing svc
+%timeit -r 1 print(f'\n svc accuracy score: { cross_val_score(svc_gender, X_train_gender, y_train_gender, cv = 10 , scoring = "accuracy" ) } \n ' )
+#%%
+#decision tree for gender
+from sklearn.tree import DecisionTreeClassifier
+dtree_gini_gender = DecisionTreeClassifier(criterion='gini', random_state=1)
+dtree_gini_gender.fit(X_train_gender,y_train_gender)
+dtree_pred = dtree_gini_gender.predict(X_test_gender)
+print(f"The dtree accuracy score is {accuracy_score(y_test_gender, dtree_pred)}")
+print(f"The dtree precision score is {precision_score(y_test_gender, dtree_pred)}")
+print(f"The dtree recall score is {recall_score(y_test_gender, dtree_pred)}")
+print(f"The dtree f1 score is {f1_score(y_test_gender, dtree_pred)}")
+#%%
+#timing dtree
+%timeit -r 1 print(f'\n dtree accuracy score: { cross_val_score(dtree_gini_gender, X_train_gender, y_train_gender, cv = 10 , scoring = "accuracy" ) } \n ' )
+# %%
+# Build the model
+# Mutiple linear regression
+
+=======
 print(classification_report(y_test,cv_predictions))
 cv_model.score(X_test, y_test)
 
@@ -470,6 +619,7 @@ wagechart_ch=sns.barplot(x='Level',y='Count',data=wagechart,palette='Greens')
 # %%
 # Build the model
 # Mutiple linear regression
+>>>>>>> a8c350c5ea9edb7666dbf8ec93dc6092e1339f0e
 
 from statsmodels.formula.api import ols
 modelwage1Fit = ols(formula='rw ~ age + C(female) + hourslw + C(forborn) + C(married) + C(educ) + C(wbho) + C(rural)', data=cleaned_df).fit()
