@@ -55,8 +55,8 @@ import pandas as pd
 # working directory getcwd() will be in the wrong place. 
 # You can change it with chdir()
 dirpath = os.getcwd() # print("current directory is : " + dirpath)
-filepath = os.path.join('/Users/IgnatiosDraklellis/Documents/GitHub/dataminingproject/cepr_org_2019.csv')
-cols_list=['age','female','wbho','forborn','citizen','vet','married', 'marstat','ownchild','empl','unem','nilf','uncov','state','educ','centcity','suburb','rural','smsastat14','ind_m03','agric','manuf', 'hourslw','rw', 'multjobn']
+filepath = os.path.join( dirpath ,'cepr_org_2019.csv')
+cols_list=['age','female','wbho','forborn','citizen','vet','married', 'marstat','ownchild','empl','unem','nilf','uncov','state','educ','centcity','suburb','rural', 'hourslw','rw', 'multjobn']
 df= pd.read_csv(filepath, usecols=cols_list)
 dfChkBasics(df, True)
 print(df.dtypes)
@@ -64,7 +64,7 @@ print(df.dtypes)
 # Data dict
 # age - age (Numeric)
 # female - sex (0 = male, 1 = female)
-# wbho - White = 0, Hispanic = 1, black = 2, other = 3
+# wbho - Race (white, Hispanic, Black, Other)
 # forborn - Foreign born (0 = foriegn born, 1 = US born)
 # citizen - US citizen (0 = No-US citizen, 1 = US citizen)
 # vet - Veteran (0 = No-vateren, 1 = veteran)
@@ -80,13 +80,10 @@ print(df.dtypes)
 # centcity - Central city (0 = no Central city, 1 = Central city)
 # suburb - suburbs (0 = no suburbs area, 1 = suburbs area)
 # rural - rural (0 = no rural area, 1 = rural area)
-# smsastat14 - Metro CBSA FIPS Code
-# ind_m03 - Major Industry Recode (Educational and health services, Wholesale and retail trade, Professional and business services, Manufacturing, Leisure and hospitality, Construction, Financial activities, Other  services, Transportation and utilities, Public administration, Agriculture, forestry, fishing, and hunting, Information, Mining, and Armed Forces)
-# agric - Agriculture (0 = Non-Argiculture job, 1 = Non-Agriculture job)
-# manuf - Manufacturing (0 = Non-Manufacturing job, 1 = Non-Manufacturing job)
 # hourslw - Hours last week, all jobs (Numeric)
 # rw - Real hourly wage, 2019$ (Numeric)
 # multjobn - Number of jobs (Numeric)
+
 
 
 # %%
@@ -98,7 +95,68 @@ boxplot = df.boxplot(column=['age', 'rw', 'hourslw'])
 dfnew = df[['age', 'rw', 'hourslw']]
 df.drop(columns=['age', 'rw', 'hourslw'])
 
+#%%
+# histrogram 
+# age
+import seaborn as sns
+sns.distplot(df['age'], hist = False, kde = True, 
+                kde_kws = {'shade': True, "linewidth": 3},
+                 color='blue').set_title('Distribution of age')  
+plt.show()   
+
+# rw  
+sns.distplot(df['rw'], hist = False, kde = True, 
+                kde_kws = {'shade': True, "linewidth": 3},
+                 color='green').set_title('Distribution of real wage')  
+plt.show()   
+
+# hourlw
+sns.distplot(df['hourslw'], hist = False, kde = True, 
+                kde_kws = {'shade': True, "linewidth": 3},
+                 color='red').set_title('Distribution of Hours last week')  
+plt.show()     
+
 # According to the plot, there are a little bit outlier in age. In addition, rw and hourslw have so many outlier, so we need to remove them out. 
+
+#%%
+# count missing value 
+df.isnull()
+df.isnull().sum()
+
+#plot missing value by columm
+import numpy as np
+import matplotlib.pyplot as plt
+ 
+# Make a missing value dataset 1:
+height = [0, 0, 0, 0, 0, 1106, 0]
+bars = ('age', 'female', 'wbho', 'forborn', 'citizen', 'vet', 'married')
+y_pos = np.arange(len(bars))
+# Create bars
+plt.bar(y_pos, height)
+plt.title("Count of missing value 1 (7 variables)")
+plt.xticks(y_pos, bars)
+plt.show()
+
+# Make a missing value dataset 2:
+height = [0, 22178, 214, 214, 214, 29404, 22741]
+bars = ('marstat', 'ownchild', 'empl', 'unem', 'nilf', 'uncov', 'multjobn')
+y_pos = np.arange(len(bars))
+# Create bars
+plt.bar(y_pos, height)
+plt.title("Count of missing value 2 (7 variables)")
+plt.xticks(y_pos, bars)
+plt.show()
+
+# Make a missing value dataset 3:
+height = [0, 0, 0, 0, 0, 23780, 26349]
+bars = ('state', 'centcity', 'suburb', 'rural', 'educ', 'hourslw', 'rw')
+y_pos = np.arange(len(bars))
+ 
+# Create bars
+plt.bar(y_pos, height)
+plt.title("Count of missing value 3 (7 variables)")
+plt.xticks(y_pos, bars)
+plt.show()
 
 #%%
 #Step 2 - remove outlier by calculated the interquartile range (IQR). 
@@ -116,7 +174,7 @@ print(df_new.shape)
 # %%
 # Step 3
 # merge the data (3 numuric) without outlier to original dataset by index of both the dataframes.
-cleaned_df = df.merge(df_new, left_index=True, right_index=True).dropna()
+cleaned_df = df.merge(df_new, left_index=True, right_index=True).dropna() #drop missing value
 
 # reset index for new dataset
 cleaned_df = cleaned_df.reset_index()
@@ -127,7 +185,7 @@ cleaned_df = cleaned_df.drop(columns=['age_y', 'rw_y', 'hourslw_y','index'])
 
 #Cleaned_data
 dfChkBasics(cleaned_df, True)
-print(cleaned_df.dtypes)
+print(cleaned_df.dtypes) #ready to do next part
 
 #%%
 #data exploration and graphing
@@ -197,6 +255,7 @@ from sklearn.linear_model import LogisticRegressionCV
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 
+# Data dict
 # age - age (Numeric)
 # female - sex (0 = male, 1 = female)
 # wbho - Race (white, Hispanic, Black, Other)
@@ -206,7 +265,7 @@ from sklearn.metrics import confusion_matrix
 # married - Married (0 = Never married, 1 = married)
 # marstat - Marital status (Married, Never Married, Divorced, Widowed, Separated)
 # ownchild - Number of children (Numeric)
-# empl - Employed (1 = employed, 0 = unemployed or not in LF)
+# empl - Employed (0 = employed, 1 = unemployed)
 # unem - Unemployed (0 = employed, 1 = unemployed)
 # nilf - Not in labor force (0 = Not in labor force, 1 = in labor force)
 # uncov - Union coverage (0 - non-Union coverage, 1 = Union coverage)
@@ -215,15 +274,10 @@ from sklearn.metrics import confusion_matrix
 # centcity - Central city (0 = no Central city, 1 = Central city)
 # suburb - suburbs (0 = no suburbs area, 1 = suburbs area)
 # rural - rural (0 = no rural area, 1 = rural area)
-# smsastat14 - Metro CBSA FIPS Code
-# ind_m03 - Major Industry Recode (Educational and health services, Wholesale and retail trade, Professional and business services, Manufacturing, Leisure and hospitality, Construction, Financial activities, Other  services, Transportation and utilities, Public administration, Agriculture, forestry, fishing, and hunting, Information, Mining, and Armed Forces)
-# agric - Agriculture (0 = Non-Argiculture job, 1 = Non-Agriculture job)
-# manuf - Manufacturing (0 = Non-Manufacturing job, 1 = Non-Manufacturing job)
 # hourslw - Hours last week, all jobs (Numeric)
 # rw - Real hourly wage, 2019$ (Numeric)
 # multjobn - Number of jobs (Numeric)
-# wbho
-# White = 0, Hispanic = 1, black = 2, other = 3
+
 def cleanDfwbho(row):
   thewbho = row["wbho"]
   return (0 if (thewbho=="White") else 1 if (thewbho=="Hispanic") else 2 if (thewbho=="Black") else 3 if (thewbho=="Other") else np.nan)
@@ -242,6 +296,7 @@ confusion_matrix = confusion_matrix(y_test, predictions)
 print(confusion_matrix)
 print(classification_report(y_test,predictions))
 logmodel.score(X_test, y_test)
+
 #%%
 #trying using cv in addition to linear regression
 cv_model=LogisticRegressionCV()
@@ -250,6 +305,167 @@ cv_predictions = cv_model.predict(X_test)
 #results
 print(classification_report(y_test,cv_predictions))
 cv_model.score(X_test, y_test)
+
+#%%
+#data exploration and graphing
+# wage and other variables
+
+# wage by gender
+import matplotlib.pyplot as plt
+import statistics
+%matplotlib inline
+plt.style.use('ggplot')
+
+x = ['female', 'male']
+energy = [statistics.mean(cleaned_df['rw'][cleaned_df.female == 0]), statistics.mean(cleaned_df['rw'][cleaned_df.female == 1])]
+
+x_pos = [i for i, _ in enumerate(x)]
+
+plt.bar(x_pos, energy, color='green')
+plt.xlabel("gender")
+plt.ylabel("Average hourly wage ($)")
+plt.title("Wage by gender")
+
+plt.xticks(x_pos, x)
+
+plt.show()
+
+#%%
+# wage by citizen 
+import matplotlib.pyplot as plt
+import statistics
+%matplotlib inline
+plt.style.use('ggplot')
+
+x = ['No-US citizen', 'US citizen']
+energy = [statistics.mean(cleaned_df['rw'][cleaned_df.citizen == 0]), statistics.mean(cleaned_df['rw'][cleaned_df.citizen == 1])]
+
+x_pos = [i for i, _ in enumerate(x)]
+
+plt.bar(x_pos, energy, color='pink')
+plt.xlabel("Citizen")
+plt.ylabel("Average hourly wage ($)")
+plt.title("Wage by citizen")
+
+plt.xticks(x_pos, x)
+
+plt.show()
+
+#%%
+# wage by married  
+import matplotlib.pyplot as plt
+import statistics
+%matplotlib inline
+plt.style.use('ggplot')
+
+x = ['Never married', 'Married']
+energy = [statistics.mean(cleaned_df['rw'][cleaned_df.married == 0]), statistics.mean(cleaned_df['rw'][cleaned_df.married == 1])]
+# married - Married (0 = Never married, 1 = married)
+x_pos = [i for i, _ in enumerate(x)]
+
+plt.bar(x_pos, energy, color='blue')
+plt.xlabel("Married")
+plt.ylabel("Average hourly wage ($)")
+plt.title("Wage by married")
+
+plt.xticks(x_pos, x)
+
+plt.show()
+
+#%%
+# wage by education
+import matplotlib.pyplot as plt
+import statistics
+%matplotlib inline
+plt.style.use('ggplot')
+
+x = ['HS', 'Some college', 'College', 'Advanced', 'LTHS']
+energy = [statistics.mean(cleaned_df['rw'][cleaned_df.educ == "HS"]), statistics.mean(cleaned_df['rw'][cleaned_df.educ == "Some college"]), statistics.mean(cleaned_df['rw'][cleaned_df.educ == "College"]), statistics.mean(cleaned_df['rw'][cleaned_df.educ == "Advanced"]), statistics.mean(cleaned_df['rw'][cleaned_df.educ == "LTHS"])]
+# educ - Education level (HS, Some college, College, Advanced, LTHS)
+x_pos = [i for i, _ in enumerate(x)]
+
+plt.bar(x_pos, energy, color='gold')
+plt.xlabel("Education level")
+plt.ylabel("Average hourly wage ($)")
+plt.title("Wage by education level")
+
+plt.xticks(x_pos, x)
+
+plt.show()
+
+
+#%%
+# wage by race
+import matplotlib.pyplot as plt
+import statistics
+%matplotlib inline
+plt.style.use('ggplot')
+
+x = ['White', 'Hispanic', 'Black', 'Other']
+energy = [statistics.mean(cleaned_df['rw'][cleaned_df.wbho == "White"]), statistics.mean(cleaned_df['rw'][cleaned_df.wbho == "Hispanic"]), statistics.mean(cleaned_df['rw'][cleaned_df.wbho == "Black"]), statistics.mean(cleaned_df['rw'][cleaned_df.wbho == "Other"])]
+# wbho - Race (white, Hispanic, Black, Other)
+x_pos = [i for i, _ in enumerate(x)]
+
+plt.bar(x_pos, energy, color='purple')
+plt.xlabel("Race")
+plt.ylabel("Average hourly wage ($)")
+plt.title("Wage by race")
+
+plt.xticks(x_pos, x)
+
+plt.show()
+
+#%%
+# wage by rural
+import matplotlib.pyplot as plt
+import statistics
+%matplotlib inline
+plt.style.use('ggplot')
+
+x = ['No rural', 'Rural']
+energy = [statistics.mean(cleaned_df['rw'][cleaned_df.rural == 0]), statistics.mean(cleaned_df['rw'][cleaned_df.rural == 1])]
+# rural - rural (0 = no rural area, 1 = rural area)
+x_pos = [i for i, _ in enumerate(x)]
+
+plt.bar(x_pos, energy, color='grey')
+plt.xlabel("Rural")
+plt.ylabel("Average hourly wage ($)")
+plt.title("Wage by rural")
+
+plt.xticks(x_pos, x)
+
+plt.show()
+
+
+#%% 
+# Wage (rw) VS Age VS Hours last week (Hourslw) by gender
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+cols = ['age', 'rw', 'hourslw']
+sns.pairplot(cleaned_df, vars=cols, hue='female')
+plt.show()
+
+
+
+#%%
+# To run wage prediction model 
+# First, create new variable (rw_dummy) 
+# Running Wage model by the six classifiers
+# prepare data
+#logistic regression to predict wage based on their responses
+# Convert wage to be object by given 0 = low wage (lower than the mean = 23.48), 1 = high wage (higher than the mean = 23.48)
+def cleanDfwage(row):
+  thewage = row["rw"]
+  return ("1" if (thewage >= 23.48) else "0" if (thewage < 23.48) else np.nan)
+# end function cleanDfwage
+cleaned_df['rw_dummy'] = cleaned_df.apply(cleanDfwage, axis=1)
+
+#wage type chart
+data = [['High wage', 4170], ['Low wage', 6248]]
+wagechart = pd.DataFrame(data, columns = ['Level', 'Count']) 
+wagechart_ch=sns.barplot(x='Level',y='Count',data=wagechart,palette='Greens')
+
 
 # %%
 # Build the model
@@ -305,24 +521,6 @@ print(vif)
 # According to the results, VIF is very small in all independent variables, so it means there are not multicollinearity issues for this model
 
 
-# %%
-# Running Wage model by the six classifiers
-# prepare data
-#logistic regression to predict wage based on their responses
-# Convert wage to be object by given 0 = low wage (lower than the mean = 23.48), 1 = high wage (higher than the mean = 23.48)
-def cleanDfwage(row):
-  thewage = row["rw"]
-  return ("1" if (thewage >= 23.48) else "0" if (thewage < 23.48) else np.nan)
-# end function cleanDfwage
-cleaned_df['rw_dummy'] = cleaned_df.apply(cleanDfwage, axis=1)
-
-#%%
-#wage type chart
-data = [['High wage', 4170], ['Low wage', 6248]]
-wagechart = pd.DataFrame(data, columns = ['Level', 'Count']) 
-wagechart_ch=sns.barplot(x='Level',y='Count',data=wagechart,palette='Greens')
-
-
 #%%
 xtarget = cleaned_df[['age', 'female', 'citizen', 'married', 'educ', 'wbho', 'hourslw', 'rural']]
 ytarget = cleaned_df['rw_dummy'] #wage 
@@ -355,7 +553,7 @@ import statsmodels.api as sm
 from statsmodels.formula.api import glm
 
 #Original logistic regression
-Original_WageModelLogitFit = glm(formula='rw ~ age + C(female) + C(citizen) + C(married) + C(educ) + C(wbho) + ownchild + C(rural)', data=cleaned_df, family=sm.families.Binomial()).fit()
+Original_WageModelLogitFit = glm(formula='rw ~ age + C(female) + C(citizen) + C(married) + C(educ) + C(wbho) + C(rural)', data=cleaned_df, family=sm.families.Binomial()).fit()
 print( Original_WageModelLogitFit.summary() )
 
 # logistic regression model for wage with the train set, and score it with the test set.
@@ -365,14 +563,44 @@ print('Logit model accuracy (with the test set):', sklearn_wageModellogit.score(
 
 sklearn_wageModellogit_predictions = sklearn_wageModellogit.predict(x_testwage)
 #print(sklearn_wageModellogit_predictions)
-print(sklearn_wageModellogit.predict_proba(x_trainwage[:8]))
-print(sklearn_wageModellogit.predict_proba(x_testwage[:8]))
 
 #results (Logit)
-print('Logit model accuracy (with the test set):', sklearn_wageModellogit.score(x_testwage, sklearn_wageModellogit_predictions))
 confusion_matrix = confusion_matrix(y_testwage, sklearn_wageModellogit_predictions)
 print(confusion_matrix)
 print(classification_report(y_testwage,sklearn_wageModellogit_predictions))
+print(f"The logit accuracy score is {accuracy_score(y_testwage, sklearn_wageModellogit_predictions)}")
+print(f"The logit precision score is {precision_score(y_testwage, sklearn_wageModellogit_predictions, average='weighted')}")
+print(f"The logit recall score is {recall_score(y_testwage, sklearn_wageModellogit_predictions, average='weighted')}")
+print(f"The logit f1 score is {f1_score(y_testwage, sklearn_wageModellogit_predictions, average='weighted')}")
+
+#%%
+#timing logistic regression
+from sklearn.model_selection import cross_val_score
+%timeit -r 1 print(f'\n logit accuracy score: { cross_val_score(sklearn_wageModellogit, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
+
+#%%
+# logistic regression with CV model for wage with the train set, and score it with the test set.
+CV_wageModellogit = LogisticRegressionCV()  # instantiate
+CV_wageModellogit .fit(x_trainwage, y_trainwage)
+print('Logit model accuracy (with the test set):', CV_wageModellogit.score(x_testwage, y_testwage))
+
+CV_wageModellogit_predictions = CV_wageModellogit.predict(x_testwage)
+#print(sklearn_wageModellogit_predictions)
+
+#results (Logit)
+from sklearn.metrics import confusion_matrix
+confusion_matrix = confusion_matrix(y_testwage, CV_wageModellogit_predictions)
+print(confusion_matrix)
+print(classification_report(y_testwage,CV_wageModellogit_predictions))
+print(f"The logit cv accuracy score is {accuracy_score(y_testwage, CV_wageModellogit_predictions)}")
+print(f"The logit cv precision score is {precision_score(y_testwage, CV_wageModellogit_predictions, average='weighted')}")
+print(f"The logit cv recall score is {recall_score(y_testwage, CV_wageModellogit_predictions, average='weighted')}")
+print(f"The logit cv f1 score is {f1_score(y_testwage, CV_wageModellogit_predictions, average='weighted')}")
+
+#%%
+#timing cv logistic regression
+%timeit -r 1 print(f'\n logit CV accuracy score: { cross_val_score(CV_wageModellogit, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
+
 
 #%%
 # Second, move to KNN
@@ -385,7 +613,7 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 
 # choose k between 1 to 31
-k_range = range(1, 31)
+k_range = range(1, 11)
 k_scores = []
 for k in k_range:
     knn_split = KNeighborsClassifier(n_neighbors=k)
@@ -399,127 +627,196 @@ plt.ylabel('Accuracy score')
 plt.show()
 
 #%%
-# the comfortable KNN choice (n = 5) 
+# the comfortable KNN choice (n = 8) 
 # from sklearn.neighbors import KNeighborsClassifier
-knn_split_5 = KNeighborsClassifier(n_neighbors=5) 
+knn_split = KNeighborsClassifier(n_neighbors=8) 
 # instantiate with n value given
-knn_split_5.fit(x_trainwage,y_trainwage)
+knn_split.fit(x_trainwage,y_trainwage)
 # knn_split.score(x_testwage,y_testwage)
-knn_wagepredictions = knn_split_5.predict(x_testwage)
+knn_wagepredictions = knn_split.predict(x_testwage)
 print(knn_wagepredictions)
-print(knn_split_5.predict_proba(x_trainwage[:8]))
-print(knn_split_5.predict_proba(x_testwage[:8]))
+
 
 # Evaluate test-set accuracy
-print("KNN (k value = 5)")
+print("KNN (k value = 8)")
 print()
-print(f'KNN train score:  {knn_split_5.score(x_trainwage,y_trainwage)}')
-print(f'KNN test score:  {knn_split_5.score(x_testwage,y_testwage)}')
+print(f'KNN train score:  {knn_split.score(x_trainwage,y_trainwage)}')
+print(f'KNN test score:  {knn_split.score(x_testwage,y_testwage)}')
 print(accuracy_score(y_testwage, knn_wagepredictions))
 from sklearn.metrics import confusion_matrix
 confusion_matrix = confusion_matrix(y_testwage, knn_wagepredictions)
 print(confusion_matrix)
 print(classification_report(y_testwage, knn_wagepredictions))
-print() 
+print(f"The knn accuracy score is {accuracy_score(y_testwage, knn_wagepredictions)}")
+print(f"The knn precision score is {precision_score(y_testwage, knn_wagepredictions, average='weighted')}")
+print(f"The knn recall score is {recall_score(y_testwage, knn_wagepredictions, average='weighted')}")
+print(f"The knn f1 score is {f1_score(y_testwage, knn_wagepredictions, average='weighted')}")
+
+#%%
+#timing knn
+%timeit -r 1 print(f'\n knn accuracy score: { cross_val_score(knn_split, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
+
 
 # %%
 # Third, move to DecisionTreeClassifier() for wage model
-# Let try entropy (max_depth = 5)
+# Let try max (max_depth = 5)
 from sklearn.tree import DecisionTreeClassifier
 
-dtreewage_entropy_5 = DecisionTreeClassifier(criterion='entropy', max_depth=5, random_state=1)
+dtreewage_max_5 = DecisionTreeClassifier(max_depth=5, random_state=1)
 # Fit dt to the training set
-dtreewage_entropy_5.fit(x_trainwage,y_trainwage)
+dtreewage_max_5.fit(x_trainwage,y_trainwage)
 # Predict test set labels
-dtreewage_entropy_5_pred = dtreewage_entropy_5.predict(x_testwage)
-print(dtreewage_entropy_5_pred)
-print(dtreewage_entropy_5.predict_proba(x_trainwage[:8]))
-print(dtreewage_entropy_5.predict_proba(x_testwage[:8]))
+dtreewage_max_5_pred = dtreewage_max_5.predict(x_testwage)
+
 
 # Evaluate test-set accuracy
-print("DecisionTreeClassifier: entropy(max_depth = 5)")
+print("DecisionTreeClassifier: max(max_depth = 5)")
 print()
-print(f'dtree train score:  {dtreewage_entropy_5.score(x_trainwage,y_trainwage)}')
-print(f'dtree test score:  {dtreewage_entropy_5.score(x_testwage,y_testwage)}')
-print(accuracy_score(y_testwage, dtreewage_entropy_5_pred))
+print(f'dtree train score:  {dtreewage_max_5.score(x_trainwage,y_trainwage)}')
+print(f'dtree test score:  {dtreewage_max_5.score(x_testwage,y_testwage)}')
+print(accuracy_score(y_testwage, dtreewage_max_5_pred))
 from sklearn.metrics import confusion_matrix
-print(confusion_matrix(y_testwage, dtreewage_entropy_5_pred))
-print(classification_report(y_testwage, dtreewage_entropy_5_pred))
+print(confusion_matrix(y_testwage, dtreewage_max_5_pred))
+print(classification_report(y_testwage, dtreewage_max_5_pred))
 print()
+print(f"The dtree_max_5 accuracy score is {accuracy_score(y_testwage, dtreewage_max_5_pred)}")
+print(f"The dtree_max_5  precision score is {precision_score(y_testwage, dtreewage_max_5_pred, average='weighted')}")
+print(f"The dtree_max_5  recall score is {recall_score(y_testwage, dtreewage_max_5_pred, average='weighted')}")
+print(f"The dtree_max_5  f1 score is {f1_score(y_testwage, dtreewage_max_5_pred, average='weighted')}")
 
 #%%
-# Fourth, let try SVC() for wage model
-from sklearn.svm import SVC, LinearSVC
-# SVC - gamma = auto
-svcwage_auto = SVC(gamma='auto', probability=True)
-svcwage_auto.fit(x_trainwage,y_trainwage)
+# plot tree
+from sklearn.tree import export_graphviz
+xnamelist = ['age' , 'female' ,'citizen', 'married', 'rural', 'wbho', 'educ']
+filename = 'tree'
+export_graphviz(dtreewage_max_5, out_file = filename + '.dot' , feature_names = xnamelist, rounded=True,
+filled=True)
 
-#Predictions
-svcwage_auto_pred = svcwage_auto.predict(x_testwage)
-print(svcwage_auto_pred)
-print(svcwage_auto.predict_proba(x_trainwage[:8]))
-print(svcwage_auto.predict_proba(x_testwage[:8]))
+#%%
+#timing dtree
+%timeit -r 1 print(f'\n dtreewage_max_5 accuracy score: { cross_val_score(dtreewage_max_5, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
 
+#%%
+# The plot
+# Receiver Operator Characteristics (ROC)
+# Area Under the Curve (AUC)
+from sklearn.metrics import roc_auc_score, roc_curve
+# generate a no skill prediction 
+nonskill_probs = [0 for _ in range(len(y_testwage))]
+# predict probabilities
+tree_probs = dtreewage_max_5.predict_proba(x_testwage)
+# keep probabilities for the positive outcome 
+tree_probs = tree_probs[:, 1]
+# calculate scores
+nonskill_auc = roc_auc_score(y_testwage, nonskill_probs)
+tree_auc = roc_auc_score(y_testwage, tree_probs)
+# summarize scores
+print('No Skill: ROC AUC=%.3f' % (nonskill_auc))
+print('Decision Tree: ROC AUC=%.3f' % (tree_auc))
+# calculate roc curves
+nonskill_fpr, nonskill_tpr, _ = roc_curve(y_testwage, nonskill_probs)
+tree_fpr, tree_tpr, _ = roc_curve(y_testwage, tree_probs)
+# plot the roc curve for the model
+plt.plot(nonskill_fpr, nonskill_tpr, linestyle='--', label='No Skill')
+plt.plot(tree_fpr, tree_tpr, marker='.', label='Decision Tree')
+# axis labels
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+# show the legend
+plt.legend()
+# show the plot
+plt.show()
+
+
+#%%
+# try 'gini'
+dtreewage_gini = DecisionTreeClassifier(criterion='gini', random_state=1)
+# Fit dt to the training set
+dtreewage_gini.fit(x_trainwage,y_trainwage)
+# Predict test set labels
+dtreewage_gini_pred = dtreewage_gini.predict(x_testwage)
 # Evaluate test-set accuracy
-print("SVC (adjust gamma: auto)")
+print("DecisionTreeClassifier: gini")
 print()
-print(f'svc train score:  {svcwage_auto.score(x_trainwage,y_trainwage)}')
-print(f'svc test score:  {svcwage_auto.score(x_testwage,y_testwage)}')
-print(accuracy_score(y_testwage, svcwage_auto_pred))
-print(confusion_matrix(y_testwage, svcwage_auto_pred))
-print(classification_report(y_testwage, svcwage_auto_pred))
+print(f'dtree train score:  {dtreewage_gini.score(x_trainwage,y_trainwage)}')
+print(f'dtree test score:  {dtreewage_gini.score(x_testwage,y_testwage)}')
+print(accuracy_score(y_testwage, dtreewage_gini_pred))
+print(confusion_matrix(y_testwage, dtreewage_gini_pred))
+print(classification_report(y_testwage, dtreewage_gini_pred))
 print()
+print(f"The dtree_gini accuracy score is {accuracy_score(y_testwage, dtreewage_gini_pred)}")
+print(f"The dtree_gini precision score is {precision_score(y_testwage, dtreewage_gini_pred, average='weighted')}")
+print(f"The dtree_gini recall score is {recall_score(y_testwage, dtreewage_gini_pred, average='weighted')}")
+print(f"The dtree_gini f1 score is {f1_score(y_testwage, dtreewage_gini_pred, average='weighted')}")
+
 
 #%%
-# Fifth, let try SVC(kernel="linear") for wage model
+#timing dtree gini
+%timeit -r 1 print(f'\n dtree gini accuracy score: { cross_val_score(dtreewage_gini, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
+
+
+
+#%%
+# Finally, let try SVC() for wage model
 from sklearn.svm import SVC, LinearSVC
 from sklearn import svm
-
-svcwage_kernel_linear = svm.SVC(kernel='linear', probability=True)
-svcwage_kernel_linear.fit(x_trainwage,y_trainwage)
+svcwage =SVC()
+svcwage.fit(x_trainwage,y_trainwage)
 
 #Predictions
-y_pred_kernel_linear = svcwage_kernel_linear.predict(x_testwage)
-print(y_pred_kernel_linear)
-print(svcwage_kernel_linear.predict_proba(x_trainwage[:8]))
-print(svcwage_kernel_linear.predict_proba(x_testwage[:8]))
+y_pred_svc = svcwage.predict(x_testwage)
+
 
 # Evaluate test-set accuracy
-print("SVC (kernel='linear')")
+print("SVC()")
 print()
-print(f'svc train score:  {svcwage_kernel_linear.score(x_trainwage,y_trainwage)}')
-print(f'svc test score:  {svcwage_kernel_linear.score(x_testwage,y_testwage)}')
-print(accuracy_score(y_testwage, y_pred_kernel_linear))
+print(f'svc train score:  {svcwage.score(x_trainwage,y_trainwage)}')
+print(f'svc test score:  {svcwage.score(x_testwage,y_testwage)}')
+print(accuracy_score(y_testwage, y_pred_svc))
 
 from sklearn.metrics import confusion_matrix
-print(confusion_matrix(y_testwage, y_pred_kernel_linear))
-print(classification_report(y_testwage, y_pred_kernel_linear))
+print(confusion_matrix(y_testwage, y_pred_svc))
+print(classification_report(y_testwage, y_pred_svc))
 print()
+print(f"The SVC accuracy score is {accuracy_score(y_testwage, y_pred_svc)}")
+print(f"The SVC precision score is {precision_score(y_testwage, y_pred_svc, average='weighted')}")
+print(f"The SVC recall score is {recall_score(y_testwage, y_pred_svc, average='weighted')}")
+print(f"The SVC f1 score is {f1_score(y_testwage, y_pred_svc, average='weighted')}")
 
 #%%
-# Finally, let try LinearSVC() for wage model
+#timing SVC
+%timeit -r 1 print(f'\n SVC accuracy score: { cross_val_score(svcwage, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
+
+
+#%%
+#%%
+# let try LinearSVC() for wage model
 from sklearn.svm import SVC, LinearSVC
 svcwage_linearsvc = svm.LinearSVC()
 svcwage_linearsvc.fit(x_trainwage,y_trainwage)
-y_pred = svcwage_linearsvc.predict(x_testwage)
 
 #Predictions
-y_pred_linearsvc = svcwage_kernel_linear.predict(x_testwage)
-print(y_pred)
-print(svcwage_linearsvc._predict_proba_lr(x_trainwage[:8]))
-print(svcwage_linearsvc._predict_proba_lr(x_testwage[:8]))
+wage_pred_linearSVC = svcwage_linearsvc.predict(x_testwage)
 
 # Evaluate test-set accuracy
 print("SVC LinearSVC()")
 print()
 print(f'svc train score:  {svcwage_linearsvc.score(x_trainwage,y_trainwage)}')
 print(f'svc test score:  {svcwage_linearsvc.score(x_testwage,y_testwage)}')
-print(accuracy_score(y_testwage, y_pred_linearsvc))
+print(accuracy_score(y_testwage, wage_pred_linearSVC))
 
 from sklearn.metrics import confusion_matrix
-print(confusion_matrix(y_testwage, y_pred_linearsvc))
-print(classification_report(y_testwage, y_pred_linearsvc))
+print(confusion_matrix(y_testwage, wage_pred_linearSVC))
+print(classification_report(y_testwage, wage_pred_linearSVC))
 print()
+print(f"The LinearSVC accuracy score is {accuracy_score(y_testwage, wage_pred_linearSVC)}")
+print(f"The LinearSVC precision score is {precision_score(y_testwage, wage_pred_linearSVC, average='weighted')}")
+print(f"The LinearSVC recall score is {recall_score(y_testwage, wage_pred_linearSVC, average='weighted')}")
+print(f"The LinearSVC f1 score is {f1_score(y_testwage, wage_pred_linearSVC, average='weighted')}")
+
+#%%
+#timing SVC
+%timeit -r 1 print(f'\n LinearSVC accuracy score: { cross_val_score(svcwage_linearsvc, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
 
 #%%
 #Calculate employment rate
