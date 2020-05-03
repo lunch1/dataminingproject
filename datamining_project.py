@@ -402,7 +402,7 @@ import statistics
 plt.style.use('ggplot')
 
 x = ['White', 'Hispanic', 'Black', 'Other']
-energy = [statistics.mean(cleaned_df['rw'][cleaned_df.wbho == "White"]), statistics.mean(cleaned_df['rw'][cleaned_df.wbho == "Hispanic"]), statistics.mean(cleaned_df['rw'][cleaned_df.wbho == "Black"]), statistics.mean(cleaned_df['rw'][cleaned_df.wbho == "Other"])]
+energy = [statistics.mean(cleaned_df['rw'][cleaned_df.wbho == 0]), statistics.mean(cleaned_df['rw'][cleaned_df.wbho == 1]), statistics.mean(cleaned_df['rw'][cleaned_df.wbho == 2]), statistics.mean(cleaned_df['rw'][cleaned_df.wbho == 3])]
 # wbho - Race (white, Hispanic, Black, Other)
 x_pos = [i for i, _ in enumerate(x)]
 
@@ -508,7 +508,7 @@ def cleanDfwbho(row):
 cleaned_df['wbho'] = df.apply(cleanDfwbho, axis=1)
 
 # Get variables for which to compute VIF and add intercept term
-X = cleaned_df[['age' , 'female' , 'hourslw', 'forborn', 'married', 'ownchild', 'wbho', 'educ']]
+X = cleaned_df[['age' , 'female' ,'citizen', 'married', 'rural', 'wbho', 'educ']]
 X['Intercept'] = 1
 
 # Compute and view VIF
@@ -522,7 +522,20 @@ print(vif)
 
 
 #%%
-xtarget = cleaned_df[['age', 'female', 'citizen', 'married', 'educ', 'wbho', 'hourslw', 'rural']]
+# %%
+# prepare data
+def cleanDfwage(row):
+  thewage = row["rw"]
+  return ("1" if (thewage >= 23.48) else "0" if (thewage < 23.48) else np.nan)
+# end function cleanDfwage
+cleaned_df['rw_dummy'] = cleaned_df.apply(cleanDfwage, axis=1)
+
+try: cleaned_df.rw_dummy = pd.to_numeric( cleaned_df.rw_dummy )
+except: print("Cannot handle to_numeric for column: rw_dummy")
+finally: print(cleaned_df.rw_dummy.describe(), '\n', cleaned_df.rw_dummy.value_counts(dropna=False))
+# above doesn't work, since there are many strings there.
+
+xtarget = cleaned_df[['age', 'female', 'citizen', 'married', 'educ', 'wbho', 'rural']]
 ytarget = cleaned_df['rw_dummy'] #wage 
 
 print(type(xtarget))
@@ -547,8 +560,13 @@ print('y_testTitanic shape',y_testwage.shape)
 # first, run the logistic regression for wage model
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegressionCV
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import recall_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import f1_score
 import statsmodels.api as sm 
 from statsmodels.formula.api import glm
 
@@ -788,7 +806,6 @@ print(f"The SVC f1 score is {f1_score(y_testwage, y_pred_svc, average='weighted'
 %timeit -r 1 print(f'\n SVC accuracy score: { cross_val_score(svcwage, x_trainwage, y_trainwage, cv = 10 , scoring = "accuracy" ) } \n ' )
 
 
-#%%
 #%%
 # let try LinearSVC() for wage model
 from sklearn.svm import SVC, LinearSVC
