@@ -971,7 +971,7 @@ from sklearn import metrics
 from sklearn.metrics import precision_recall_fscore_support
 knn_empl = KNeighborsClassifier( )
 #this will run a range of k values and return the best parameters
-k_range = list(range(1,30))
+k_range = list(range(1,11))
 weights_options = ['uniform','distance']
 k_grid = dict(n_neighbors=k_range, weights = weights_options)
 grid = GridSearchCV(knn_empl, k_grid, cv=10, scoring = 'precision')
