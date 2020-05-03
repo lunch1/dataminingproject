@@ -55,9 +55,9 @@ import pandas as pd
 # working directory getcwd() will be in the wrong place. 
 # You can change it with chdir()
 dirpath = os.getcwd() # print("current directory is : " + dirpath)
-filepath = os.path.join('/Users/IgnatiosDraklellis/Documents/GitHub/dataminingproject/cepr_org_2019.csv')
+filename = 'cepr_org_2019.csv'
 cols_list=['age','female','wbho','forborn','citizen','vet','married', 'marstat','ownchild','empl','unem','nilf','uncov','state','educ','centcity','suburb','rural','smsastat14','ind_m03','agric','manuf', 'hourslw','rw', 'multjobn']
-df= pd.read_csv(filepath, usecols=cols_list)
+df= pd.read_csv(filename, usecols=cols_list)
 dfChkBasics(df, True)
 print(df.dtypes)
 
@@ -614,22 +614,25 @@ from sklearn.model_selection import cross_val_score
 #1.44 s ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
 
 #%%
-from sklearn.metrics import roc_auc_score
 from sklearn.metrics import roc_curve
-logit_roc_auc = roc_auc_score(y_testempl, predictionsempl)
-fpr, tpr, thresholds = roc_curve(y_testempl, predictionsempl)
-plt.figure()
-plt.plot(fpr, tpr, label='Logistic Regression (area = %0.2f)' % logit_roc_auc)
-plt.plot([0, 1], [0, 1],'r--')
-plt.xlim([0.0, 1.0])
-plt.ylim([0.0, 1.05])
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('Receiver operating characteristic')
-plt.legend(loc="lower right")
-plt.savefig('Log_ROC')
-plt.show()
-
+from sklearn.metrics import roc_auc_score
+from matplotlib import pyplot
+lr_probs = lr_empl.predict_proba(X_testempl)
+lr_probs = lr_probs[:, 1]
+ns_probs = [0 for _ in range(len(y_testempl))]
+ns_auc = roc_auc_score(y_testempl, ns_probs)
+lr_auc = roc_auc_score(y_testempl, lr_probs)
+print('No Skill: ROC AUC=%.3f' % (ns_auc))
+print('Logistic: ROC AUC=%.3f' % (lr_auc))
+ns_fpr, ns_tpr, _ = roc_curve(y_testempl, ns_probs)
+lr_fpr, lr_tpr, _ = roc_curve(y_testempl, lr_probs)
+pyplot.plot(ns_fpr, ns_tpr, linestyle='--', label='No Skill')
+pyplot.plot(lr_fpr, lr_tpr, marker='.', label='Logistic',color='red')
+pyplot.xlabel('False Positive Rate',fontsize=12)
+pyplot.ylabel('True Positive Rate',fontsize=12)
+pyplot.title('Logistic Regression',fontsize=15)
+pyplot.legend()
+pyplot.show()
 #%%
 # logistic regression with CV model for empl with the train set, and score it with the test set.
 CV_emplModellogit = LogisticRegressionCV()  # instantiate
